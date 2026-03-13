@@ -3,7 +3,7 @@ CleckBasket is an e-commerce platform designed for independent local food retail
 
 **Key Features**
 
-🛍 Multi-Vendor Marketplace
+🛍 Multi Vendor Marketplace
 Customers can shop from multiple local traders in a single platform.
 
 🧺 Shared Shopping Basket
