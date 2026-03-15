@@ -1,6 +1,8 @@
 # CleckBasket-Ecommerce-portal
 CleckBasket is an e-commerce platform designed for independent local food retailers. It allows customers to browse products from multiple shops, place orders in a shared basket, and schedule click and collect pickups, helping small businesses compete with large retail chains while maintaining their local identity.
 
+![image alt](https://github.com/Aishwaryagithubit/CleckBasket-Ecommerce-portal/blob/eb12d2c54944f62236b6a84b617db879a1eb1fb0/CleckBasket_VT.png)
+
 **Key Features**
 
 🛍 Multi Vendor Marketplace
