@@ -3,8 +3,6 @@ CleckBasket is an e-commerce platform designed for independent local food retail
 
 ![image alt](https://github.com/Aishwaryagithubit/CleckBasket-Ecommerce-portal/blob/2d30dffa75f22b5c8ed287fa9a0832d6147f3686/CleckBasket_HZ.png)
 
-![image alt](https://github.com/Aishwaryagithubit/CleckBasket-Ecommerce-portal/blob/eb12d2c54944f62236b6a84b617db879a1eb1fb0/CleckBasket_VT.png)
-
 **Key Features**
 
 🛍 Multi Vendor Marketplace
@@ -91,4 +89,5 @@ Payments: PayPal Integration
 
 Deployment: Web-based platform
 
-
+**Product Logo** : 
+![image alt](https://github.com/Aishwaryagithubit/CleckBasket-Ecommerce-portal/blob/eb12d2c54944f62236b6a84b617db879a1eb1fb0/CleckBasket_VT.png)
