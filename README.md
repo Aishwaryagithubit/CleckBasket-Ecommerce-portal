@@ -61,7 +61,7 @@ These limitations allow the system to be evaluated on a smaller scale before con
 
 **Future Improvements**
 
-Potential future enhancements include:
+Potential future enhancements include :
 
 Supporting additional traders and product categories
 
