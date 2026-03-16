@@ -18,7 +18,7 @@ Customers select a convenient collection slot for their orders.
 Secure user registration and login for order management.
 
 💳 Integrated Online Payments
-Supports secure payment processing (e.g., PayPal).
+Supports secure payment processing (e.g. PayPal).
 
 📦 Trader Product Management
 Traders can add, update, and manage their product listings.
