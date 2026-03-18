@@ -43,7 +43,7 @@ Enable businesses to extend their market reach without extending physical store 
 
 Promote sustainable local commerce and community-driven retail
 
-System Limitations (Pilot Scope)
+The System Limitations (Pilot Scope)
 
 To ensure manageable development and testing, the prototype includes several operational constraints:
 
