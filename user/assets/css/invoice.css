@@ -1,0 +1,686 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Manrope", sans-serif;
+  background: #fff;
+  color: #51443e;
+}
+
+.invoice-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.invoice-card {
+  background: #fff;
+  box-shadow: 0 16px 64px -12px rgba(41, 23, 12, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.invoice-header {
+  position: relative;
+  height: 192px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.invoice-header-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.geo-brown {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 66%;
+  height: 100%;
+  background: #5a2b12;
+  clip-path: polygon(0 0, 85% 0, 70% 100%, 0 100%);
+}
+
+.geo-brown-overlay {
+  position: absolute;
+  left: 1%;
+  top: 0;
+  width: 68%;
+  height: 100%;
+  background: #57331c;
+  opacity: 0.2;
+  clip-path: polygon(0 0, 90% 0, 75% 100%, 0 100%);
+}
+
+.geo-green {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 34%;
+  height: 100%;
+  background: #d5e8cd;
+  opacity: 0.4;
+}
+
+.invoice-header-left {
+  position: relative;
+  z-index: 1;
+  padding-left: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.invoice-header-left h1 {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 800;
+  font-size: 48px;
+  line-height: 48px;
+  letter-spacing: -2.4px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.invoice-header-left .order-id {
+  font-family: "Manrope", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: #d5e8cd;
+}
+
+.invoice-header-right {
+  position: relative;
+  z-index: 1;
+  text-align: right;
+  padding-right: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.invoice-header-right .brand-logo {
+  height: 48px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
+.invoice-header-right .brand-tagline {
+  font-family: "Manrope", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: #51443e;
+}
+
+.invoice-header-right .invoice-date {
+  font-family: "Manrope", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #51443e;
+}
+
+.invoice-body {
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+}
+
+.info-section {
+  display: flex;
+  justify-content: space-between;
+}
+
+.info-block {
+  max-width: 50%;
+}
+
+.info-block.right {
+  text-align: right;
+}
+
+.info-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.info-block.right .info-label-row {
+  justify-content: flex-end;
+}
+
+.info-divider {
+  width: 32px;
+  height: 2px;
+  background: #401e09;
+}
+
+.info-label {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #401e09;
+}
+
+.info-name {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 32px;
+  color: #29170c;
+  margin-bottom: 8px;
+  padding-left: 40px;
+}
+
+.info-block.right .info-name {
+  padding-left: 0;
+  padding-right: 40px;
+}
+
+.info-detail {
+  font-family: "Manrope", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  color: #51443e;
+  padding-left: 40px;
+}
+
+.info-detail.highlight {
+  font-weight: 600;
+  color: #865135;
+}
+
+.info-block.right .info-detail {
+  padding-left: 0;
+  padding-right: 40px;
+}
+
+.info-address {
+  font-family: "Manrope", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 23px;
+  color: #51443e;
+  padding-left: 40px;
+}
+
+.info-block.right .info-address {
+  padding-left: 0;
+  padding-right: 40px;
+}
+
+.invoice-table-wrap {
+  background: #fff1ea;
+  border-radius: 12px;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.invoice-table thead tr {
+  background: #5a2b12;
+}
+
+.invoice-table thead th {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 16px 24px;
+  text-align: left;
+}
+
+.invoice-table thead th:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+.invoice-table thead th:last-child {
+  border-radius: 0 8px 0 0;
+  text-align: right;
+}
+
+.invoice-table tbody tr {
+  border-bottom: 1px solid rgba(214, 195, 186, 0.2);
+}
+
+.invoice-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.invoice-table tbody td {
+  padding: 28px 24px;
+  vertical-align: middle;
+  font-family: "Manrope", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: #51443e;
+}
+
+.invoice-table tbody td:last-child {
+  text-align: right;
+  font-weight: 700;
+  color: #29170c;
+}
+
+.product-name {
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  color: #29170c;
+  margin-bottom: 4px;
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #d5e8cd;
+  border-radius: 9999px;
+  font-family: "Manrope", sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #865135;
+}
+
+.summary-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 40px;
+}
+
+.payment-info-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 384px;
+}
+
+.payment-card {
+  background: rgba(213, 232, 205, 0.3);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.payment-card-label {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #1c2b19;
+}
+
+.payment-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.payment-row svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.payment-row span {
+  font-family: "Manrope", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: #51443e;
+}
+
+.payment-note {
+  font-family: "Manrope", sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  color: #51443e;
+}
+
+.totals-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 320px;
+}
+
+.totals-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.totals-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.totals-row .label {
+  font-family: "Manrope", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: #51443e;
+}
+
+.totals-row .value {
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 20px;
+  color: #29170c;
+}
+
+.totals-row.discount .label,
+.totals-row.discount .value {
+  color: #ba1a1a;
+}
+
+.total-due-bar {
+  background: #5a331c;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-due-bar .due-label {
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.total-due-bar .due-amount {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 36px;
+  color: #fff;
+}
+
+.signature-section {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 48px 64px;
+}
+
+.signature-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 256px;
+}
+
+.signature-line {
+  width: 192px;
+  height: 48px;
+  border-bottom: 2px solid #401e09;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.signature-line img {
+  height: 46px;
+  mix-blend-mode: multiply;
+  opacity: 0.8;
+}
+
+.signature-name {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 20px;
+  color: #5a331c;
+  text-align: center;
+}
+
+.signature-title {
+  font-family: "Manrope", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #51443e;
+  text-align: center;
+}
+
+.invoice-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.btn-download {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #401e09 0%, #5a331c 100%);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  cursor: pointer;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+
+.btn-download:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-download svg {
+  width: 16px;
+  height: 16px;
+  fill: #fff;
+}
+
+.btn-print {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  background: #fedcc8;
+  border: none;
+  border-radius: 12px;
+  color: #401e09;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  cursor: pointer;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+
+.btn-print:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.btn-print svg {
+  width: 20px;
+  height: 18px;
+  fill: #401e09;
+}
+
+@media print {
+  .invoice-actions {
+    display: none;
+  }
+
+  .invoice-page {
+    padding: 0;
+  }
+
+  .invoice-card {
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .invoice-body {
+    padding: 24px;
+    gap: 40px;
+  }
+
+  .info-section {
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .info-block.right {
+    text-align: left;
+  }
+
+  .info-block.right .info-label-row {
+    justify-content: flex-start;
+  }
+
+  .info-block.right .info-name,
+  .info-block.right .info-detail,
+  .info-block.right .info-address {
+    padding-left: 40px;
+    padding-right: 0;
+  }
+
+  .summary-section {
+    flex-direction: column;
+  }
+
+  .invoice-table-wrap {
+    overflow-x: auto;
+  }
+
+  .invoice-header-left h1 {
+    font-size: 36px;
+  }
+
+  .signature-section {
+    padding: 0 24px 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .invoice-header {
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 32px 0;
+    gap: 24px;
+  }
+
+  .geo-brown, .geo-green, .geo-brown-overlay {
+    display: none; /* Simplify background on mobile */
+  }
+
+  .invoice-header-bg {
+    background: #5a2b12; /* Solid fallback for mobile */
+  }
+
+  .invoice-header-left {
+    padding-left: 24px;
+  }
+
+  .invoice-header-left h1 {
+    font-size: 28px;
+    letter-spacing: -1px;
+  }
+
+  .invoice-header-right {
+    padding-right: 24px;
+    padding-left: 24px;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .invoice-header-right .brand-logo {
+    height: 32px;
+  }
+
+  .invoice-header-right .brand-tagline,
+  .invoice-header-right .invoice-date {
+    color: #fff; /* Ensure text is visible on solid dark bg */
+  }
+
+  .invoice-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .btn-download, .btn-print {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .info-name {
+    font-size: 20px;
+  }
+  
+  .total-due-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

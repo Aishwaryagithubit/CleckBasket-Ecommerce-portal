@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Information — CleckBasket</title>
+    <link rel="stylesheet" href="/cleckbasket/assets/css/style.css">
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: var(--font-sans); }
+      .page-wrapper { padding: 2rem 1.5rem; max-width: 760px; margin: 0 auto; }
+      .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+      .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 99px; margin-bottom: 12px; }
+      .badge-green { background: var(--color-background-success); color: var(--color-text-success); }
+      .page-title { font-size: 24px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 8px; }
+      .page-meta { font-size: 13px; color: var(--color-text-tertiary); }
+      .section { margin-bottom: 2rem; }
+      .section-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+      .section-title i { font-size: 16px; color: var(--color-text-secondary); }
+      .section-body { font-size: 14px; color: var(--color-text-secondary); line-height: 1.75; }
+      .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 1rem 0; }
+      .info-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; }
+      .info-card .label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+      .info-card .value { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+      .divider { height: 0.5px; background: var(--color-border-tertiary); margin: 1.5rem 0; }
+      .highlight-box { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 1rem 1.25rem; margin: 1rem 0; }
+      .highlight-box p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.7; }
+      .contact-box { display: flex; align-items: center; gap: 12px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+      .contact-box i { font-size: 20px; color: var(--color-text-secondary); }
+      .contact-box .ct { font-size: 13px; color: var(--color-text-secondary); }
+      .contact-box .ct a { color: var(--color-text-info); text-decoration: none; }
+      .step { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+      .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--color-text-primary); flex-shrink: 0; }
+      .step p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.65; padding-top: 2px; }
+    </style>
+</head>
+<body>
+    <?php include __DIR__ . '/../header.php'; ?>
+    
+    <main class="page-wrapper">
+      <div class="page-header">
+        <span class="badge badge-green"><i class="ti ti-truck" aria-hidden="true"></i>Delivery</span>
+        <div class="page-title">Shipping Information</div>
+        <div class="page-meta">We ship to 40+ countries &nbsp;·&nbsp; Orders processed Mon–Fri</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-clock" aria-hidden="true"></i>Processing time</div>
+        <div class="section-body">All orders are processed within 1–2 business days after payment confirmation. Orders placed after 2 PM PST or on weekends/holidays will begin processing the next business day.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-world" aria-hidden="true"></i>Domestic shipping (United States)</div>
+        <div class="info-grid">
+          <div class="info-card"><div class="label">Standard</div><div class="value">5–7 business days</div></div>
+          <div class="info-card"><div class="label">Expedited</div><div class="value">2–3 business days</div></div>
+          <div class="info-card"><div class="label">Overnight</div><div class="value">Next business day</div></div>
+          <div class="info-card"><div class="label">Free shipping</div><div class="value">Orders over $75</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-plane" aria-hidden="true"></i>International shipping</div>
+        <div class="info-grid">
+          <div class="info-card"><div class="label">Canada &amp; Mexico</div><div class="value">7–12 business days</div></div>
+          <div class="info-card"><div class="label">Europe</div><div class="value">10–16 business days</div></div>
+          <div class="info-card"><div class="label">Asia-Pacific</div><div class="value">12–20 business days</div></div>
+          <div class="info-card"><div class="label">Duties &amp; taxes</div><div class="value">Billed to recipient</div></div>
+        </div>
+        <div class="highlight-box" style="margin-top:1rem"><p>International shipments may be subject to customs inspection, which can cause delays beyond our control. Customers are responsible for all import duties, taxes, and customs fees levied by their country.</p></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-package" aria-hidden="true"></i>Tracking &amp; returns</div>
+        <div class="step"><div class="step-num">1</div><p>A tracking number is emailed within 24 hours of shipment. Track your order at <a href="#" style="color:var(--color-text-info)">cleckbasket.com/track</a>.</p></div>
+        <div class="step"><div class="step-num">2</div><p>If your package arrives damaged or is lost in transit, contact us within 7 days and we will reship or refund at no cost.</p></div>
+        <div class="step"><div class="step-num">3</div><p>Unwanted items may be returned within 30 days of delivery in original, unused condition for a full refund (minus return shipping).</p></div>
+      </div>
+
+      <div class="contact-box">
+        <i class="ti ti-headset" aria-hidden="true"></i>
+        <div class="ct">Shipping questions? Reach our support team at <a href="mailto:support@cleckbasket.com">support@cleckbasket.com</a> or call <strong style="font-weight:500;color:var(--color-text-primary)">1-800-226-2678</strong>, Mon–Fri 9 AM–6 PM PST.</div>
+      </div>
+    </main>
+
+    <?php include __DIR__ . '/../footer.php'; ?>
+</body>
+</html>

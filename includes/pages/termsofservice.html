@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service — CleckBasket</title>
+    <link rel="stylesheet" href="/cleckbasket/assets/css/style.css">
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: var(--font-sans); }
+      .page-wrapper { padding: 2rem 1.5rem; max-width: 760px; margin: 0 auto; }
+      .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+      .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 99px; margin-bottom: 12px; }
+      .badge-blue { background: var(--color-background-info); color: var(--color-text-info); }
+      .page-title { font-size: 24px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 8px; }
+      .page-meta { font-size: 13px; color: var(--color-text-tertiary); }
+      .section { margin-bottom: 2rem; }
+      .section-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+      .section-title i { font-size: 16px; color: var(--color-text-secondary); }
+      .section-body { font-size: 14px; color: var(--color-text-secondary); line-height: 1.75; }
+      .highlight-box { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 1rem 1.25rem; margin: 1rem 0; }
+      .highlight-box p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.7; }
+      .list-item { display: flex; gap: 10px; margin-bottom: 8px; font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; }
+      .list-item i { font-size: 15px; margin-top: 2px; flex-shrink: 0; color: var(--color-text-tertiary); }
+      .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 1rem 0; }
+      .info-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; }
+      .info-card .label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+      .info-card .value { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+      .divider { height: 0.5px; background: var(--color-border-tertiary); margin: 1.5rem 0; }
+      .contact-box { display: flex; align-items: center; gap: 12px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+      .contact-box i { font-size: 20px; color: var(--color-text-secondary); }
+      .contact-box .ct { font-size: 13px; color: var(--color-text-secondary); }
+      .contact-box .ct a { color: var(--color-text-info); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <?php include __DIR__ . '/../header.php'; ?>
+    
+    <main class="page-wrapper">
+      <div class="page-header">
+        <span class="badge badge-blue"><i class="ti ti-gavel" aria-hidden="true"></i>Legal Agreement</span>
+        <div class="page-title">Terms of Service</div>
+        <div class="page-meta">Effective date: January 1, 2025 &nbsp;·&nbsp; Governing law: State of California</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-hand-click" aria-hidden="true"></i>Acceptance of terms</div>
+        <div class="section-body">By accessing or using CleckBasket services, you confirm that you are at least 18 years old, have read these terms, and agree to be bound by them. If you are using our services on behalf of an organization, you represent that you have authority to bind that organization.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-license" aria-hidden="true"></i>License &amp; permitted use</div>
+        <div class="highlight-box"><p>We grant you a limited, non-exclusive, non-transferable license to access and use our platform for your internal business or personal purposes. You may not sublicense, resell, or exploit any portion of the service without our written consent.</p></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-ban" aria-hidden="true"></i>Prohibited activities</div>
+        <div class="list-item"><i class="ti ti-x" aria-hidden="true"></i><span>Reverse engineer, decompile, or attempt to extract source code from our services.</span></div>
+        <div class="list-item"><i class="ti ti-x" aria-hidden="true"></i><span>Use automated scrapers, bots, or scripts without prior written approval.</span></div>
+        <div class="list-item"><i class="ti ti-x" aria-hidden="true"></i><span>Upload or transmit malicious code, spam, or unlawful content.</span></div>
+        <div class="list-item"><i class="ti ti-x" aria-hidden="true"></i><span>Impersonate any person or entity, or misrepresent your affiliation.</span></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-credit-card" aria-hidden="true"></i>Billing &amp; cancellation</div>
+        <div class="info-grid">
+          <div class="info-card"><div class="label">Billing cycle</div><div class="value">Monthly or annual</div></div>
+          <div class="info-card"><div class="label">Refund window</div><div class="value">14 days from charge</div></div>
+          <div class="info-card"><div class="label">Cancellation</div><div class="value">Any time, takes effect at period end</div></div>
+          <div class="info-card"><div class="label">Price changes</div><div class="value">30 days notice</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-alert-triangle" aria-hidden="true"></i>Limitation of liability</div>
+        <div class="section-body">To the fullest extent permitted by law, CleckBasket shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the service. Our total aggregate liability shall not exceed the amounts paid by you in the twelve months preceding the claim.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="contact-box">
+        <i class="ti ti-mail" aria-hidden="true"></i>
+        <div class="ct">Legal inquiries: <a href="mailto:legal@cleckbasket.com">legal@cleckbasket.com</a> &nbsp;·&nbsp; For disputes, binding arbitration applies.</div>
+      </div>
+    </main>
+
+    <?php include __DIR__ . '/../footer.php'; ?>
+</body>
+</html>

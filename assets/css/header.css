@@ -1,0 +1,513 @@
+/* ===========================================
+   header.css — CleckBasket Navbar Styles
+   =========================================== */
+
+/* ---- CSS Variables (easy to customise) ---- */
+:root {
+  --green: #4caf50;
+  --green-dark: #388e3c;
+  --brown-dark: #3b2a1a;
+  --text-main: #222222;
+  --text-muted: #777777;
+  --bg-header: #ffffff;
+  --bg-search: #f1f3f0;
+  --badge-bg: #4caf50;
+  --border-radius-pill: 50px;
+  --transition: 0.2s ease;
+}
+
+/* ---- Reset / Base ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", sans-serif;
+}
+
+/* ---- Top Banner ---- */
+.top-banner {
+  background-color: #639966;
+  color: #ffffff;
+  text-align: center;
+  padding: 10px 15px;
+  /* font-size: 14px;
+  font-weight: 500; */
+}
+
+/* ---- Header Wrapper ---- */
+.site-header {
+  background-color: var(--bg-header);
+  border-bottom: 1px solid #e8ede8;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+}
+
+/* ---- Inner row: flex container ---- */
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  position: relative;
+}
+
+/* ===========================================
+   LEFT SECTION — Hamburger + Logo
+   =========================================== */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Hamburger Button — hidden on desktop */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+}
+
+.hamburger-btn span {
+  display: block;
+  width: 100%;
+  height: 2.5px;
+  background-color: var(--text-main);
+  border-radius: 2px;
+  transition:
+    transform var(--transition),
+    opacity var(--transition);
+}
+
+/* Animate hamburger → X when active */
+.hamburger-btn.active span:nth-child(1) {
+  transform: translateY(7.75px) rotate(45deg);
+}
+
+.hamburger-btn.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-btn.active span:nth-child(3) {
+  transform: translateY(-7.75px) rotate(-45deg);
+}
+
+/* Logo image */
+.logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo-img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ===========================================
+   CENTER SECTION — Navigation
+   =========================================== */
+.main-nav {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-link {
+  display: inline-block;
+  padding: 6px 14px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-main);
+  text-decoration: none;
+  border-radius: 6px;
+  transition:
+    color var(--transition),
+    background-color var(--transition);
+}
+
+.nav-link:hover {
+  color: var(--green);
+  background-color: #f0faf0;
+}
+
+/* Active / current page highlight */
+.nav-link.active {
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* Mobile-only extras — hidden on desktop */
+.mobile-nav-extras {
+  display: none;
+}
+
+/* ===========================================
+   RIGHT SECTION — Search + Icons
+   =========================================== */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ---- Search Bar ---- */
+.search-form {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-search);
+  border-radius: var(--border-radius-pill);
+  overflow: hidden;
+  border: 1.5px solid #dde8dd;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+.search-form:focus-within {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+}
+
+.search-input {
+  border: none;
+  background: transparent;
+  padding: 9px 16px;
+  font-size: 14px;
+  color: var(--text-main);
+  outline: none;
+  width: 230px;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--green);
+  border: none;
+  color: #ffffff;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: background-color var(--transition);
+}
+
+.search-btn:hover {
+  background-color: var(--green-dark);
+}
+
+/* ---- Icon Buttons (User, Cart, Wishlist) ---- */
+.icon-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-main);
+  text-decoration: none;
+  padding: 6px;
+  border-radius: 50%;
+  transition:
+    color var(--transition),
+    background-color var(--transition);
+}
+
+.icon-btn:hover {
+  color: var(--green);
+  background-color: #f0faf0;
+}
+
+/* User greeting text next to user icon */
+.user-greeting {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.user-btn {
+  border-radius: 20px;
+  padding: 6px 10px;
+}
+
+/* ---- Badge (cart count) ---- */
+.badge {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  background-color: var(--badge-bg);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border: 1.5px solid #fff;
+}
+.visible {
+  display: flex !important;
+}
+.hidden {
+  display: none !important;
+}
+
+/* ===========================================
+   RESPONSIVE — laptops (max-width: 1145px)
+
+   =========================================== */
+@media (max-width: 1145px) {
+  .search-form {
+    position: relative;
+    overflow: visible;
+  }
+  .search-input {
+    display: none;
+    position: absolute;
+    border: 1.5px solid #dde8dd !important;
+    top: calc(100% + 6px);
+    right: 0;
+    width: min(280px, 75vw);
+    background-color: #ffffff;
+    border: 1px solid #dde8dd;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+  .search-btn {
+    padding: 6px 10px;
+    border-radius: 999px;
+  }
+
+  .search-input.visible {
+    display: block !important;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+}
+/* ===========================================
+   RESPONSIVE — Tablet (max-width: 1024px)
+   =========================================== */
+@media (max-width: 1024px) {
+  .nav-link {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+
+  .header-inner {
+    gap: 12px;
+  }
+}
+
+/* ===========================================
+   RESPONSIVE — Mobile (max-width: 768px)
+   =========================================== */
+@media (max-width: 768px) {
+  /* Show hamburger on mobile */
+  .hamburger-btn {
+    display: flex;
+  }
+
+  .header-inner {
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    gap: 10px;
+  }
+
+  /* Hide original search bar & user profile on mobile */
+  .search-form {
+    display: none !important;
+  }
+
+  .user-btn {
+    display: none !important;
+  }
+
+  /* Nav dropdown: collapsed by default, slides open */
+  .main-nav {
+    order: 4;
+    flex: 1 0 100%;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+
+  .main-nav.nav-open {
+    max-height: 500px;
+  }
+
+  .nav-list {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 8px 0;
+    border-top: 1px solid #e8ede8;
+  }
+
+  .nav-link {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    border-radius: 8px;
+  }
+
+  /* Show mobile extras inside dropdown */
+  .mobile-nav-extras {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 0 4px;
+    border-top: 1px solid #e8ede8;
+    margin-top: 4px;
+  }
+
+  /* Mobile search bar inside dropdown */
+  .mobile-search-form {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-search);
+    border-radius: var(--border-radius-pill);
+    overflow: hidden;
+    border: 1.5px solid #dde8dd;
+    width: 100%;
+  }
+
+  .mobile-search-input {
+    border: none;
+    background: transparent;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: var(--text-main);
+    outline: none;
+    width: 100%;
+    flex: 1;
+  }
+
+  .mobile-search-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .mobile-search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--green);
+    border: none;
+    color: #ffffff;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background-color var(--transition);
+  }
+
+  .mobile-search-btn:hover {
+    background-color: var(--green-dark);
+  }
+
+  /* Mobile profile link inside dropdown */
+  .mobile-profile-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-main);
+    text-decoration: none;
+    border-radius: 8px;
+    transition:
+      color var(--transition),
+      background-color var(--transition);
+  }
+
+  .mobile-profile-link:hover {
+    color: var(--green);
+    background-color: #f0faf0;
+  }
+
+  .mobile-profile-link span {
+    font-size: 15px;
+  }
+
+  /* Hide user greeting text on small screens */
+  .user-greeting {
+    display: none;
+  }
+
+  /* Tighten icon spacing */
+  .header-right {
+    gap: 4px;
+  }
+
+  .logo-img {
+    height: 44px;
+  }
+}
+
+/* ===========================================
+   RESPONSIVE — Small mobile (max-width: 480px)
+   =========================================== */
+@media (max-width: 480px) {
+  .logo-img {
+    height: 36px;
+  }
+
+  .top-banner {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .top-banner p {
+    line-height: 1.4;
+  }
+
+  .header-inner {
+    padding: 8px 12px;
+  }
+
+  .icon-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .badge {
+    min-width: 15px;
+    height: 15px;
+    font-size: 9px;
+  }
+}
+aside.sidebar , aside.cb-sidebar{
+    height: calc(100vh - 133px);}

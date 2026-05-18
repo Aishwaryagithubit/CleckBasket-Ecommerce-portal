@@ -1,0 +1,481 @@
+/* c:\xampp\htdocs\cleckbasket\assets\css\signup.css */
+body {
+  background-color: #f9f9f9;
+  margin: 0;
+  font-family: "DM Sans", sans-serif;
+}
+
+.auth-main {
+  position: relative;
+  /* min-height: 1024px; */
+  background: #f9f9f9;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  padding: 28px 40px 20px;
+  box-sizing: border-box;
+}
+
+/* Background Geometric Decorations */
+.bg-decor-1 {
+  position: absolute;
+  width: 768px;
+  height: 716.8px;
+  left: -93.78px;
+  top: -134.5px;
+  background: #d5e8cd;
+  opacity: 0.4;
+  transform: rotate(-5deg);
+  z-index: 0;
+}
+
+.bg-decor-2 {
+  position: absolute;
+  width: 640px;
+  height: 614.4px;
+  right: -71.12px;
+  bottom: -93.77px;
+  background: #ffdbcb;
+  opacity: 0.3;
+  transform: rotate(12deg);
+  z-index: 0;
+}
+
+.bg-decor-3 {
+  position: absolute;
+  width: 128px;
+  height: 128px;
+  right: 128px;
+  top: 204.8px;
+  background: #d5e8cd;
+  opacity: 0.2;
+  filter: blur(32px);
+  border-radius: 12px;
+  z-index: 0;
+}
+
+.auth-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  max-width: 1392px;
+  /* 1440 - 24*2 */
+  justify-content: space-between;
+  gap: 40px;
+}
+
+/* Left Content */
+.auth-left {
+  position: relative;
+  width: 100%;
+  max-width: 704px;
+  padding-top: 20px;
+}
+
+.brand-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.brand-title {
+  margin: 0;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-size: 60px;
+  line-height: 1;
+  letter-spacing: -3px;
+  color: #401e09;
+}
+
+.brand-subtitle {
+  margin: 0;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 100;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 2.8px;
+  text-transform: uppercase;
+  color: #865135;
+}
+
+.brand-message-container {
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+  max-width: 704px;
+  margin-bottom: 40px;
+}
+
+.brand-message {
+  margin: 0;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 100;
+  font-size: 36px;
+  line-height: 1.25;
+  letter-spacing: -0.9px;
+  color: #1a1c1c;
+}
+
+.underline-text {
+  border-bottom: 1px solid rgba(134, 81, 53, 0.4);
+  padding-bottom: 2px;
+}
+
+.brand-description {
+  margin: 0;
+  max-width: 448px;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.62;
+  color: #51443e;
+}
+
+.brand-image-container {
+  position: relative;
+  width: 100%;
+  max-width: 704px;
+  height: 400px;
+  margin-bottom: 40px;
+}
+
+.image-backdrop {
+  position: absolute;
+  left: -19.73px;
+  right: -10.18px;
+  top: -21px;
+  bottom: -11.04px;
+  background: #d5e8cd;
+  opacity: 0.1;
+  border-radius: 8px;
+  z-index: 0;
+}
+
+.brand-image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
+  z-index: 1;
+}
+
+.brand-footnote {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+  margin-left: 24px;
+}
+
+.footnote-line {
+  font-family: "DM Sans", sans-serif;
+  font-weight: 900;
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #83746c;
+}
+
+.footnote-line.black-text {
+  font-weight: 100;
+  color: #000000;
+  margin-top: 4px;
+}
+
+/* Right Content - Card */
+.auth-right {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 30px;
+}
+
+.auth-card {
+  position: relative;
+  width: 100%;
+  max-width: 528px;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(2px);
+  box-shadow: 0px 40px 80px -15px rgba(26, 28, 28, 0.08);
+  border-radius: 8px;
+  padding: 57px;
+  box-sizing: border-box;
+  height: fit-content;
+}
+
+.card-header {
+  margin-bottom: 40px;
+}
+
+.card-title {
+  margin: 0 0 6px 0;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.33;
+  letter-spacing: -0.6px;
+  color: #1a1c1c;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-icon {
+  width: 20px;
+  height: 20px;
+  color: #1e1e1e;
+}
+
+.card-subtitle {
+  margin: 0;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 100;
+  font-size: 14px;
+  line-height: 1.43;
+  color: #51443e;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #83746c;
+}
+
+.password-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.forgot-password {
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #865135;
+  text-decoration: none;
+}
+
+.auth-form input[type="email"],
+.auth-form input[type="password"],
+.auth-form input[type="text"] {
+  box-sizing: border-box;
+  width: 100%;
+  height: 51px;
+  background: #f3f3f3;
+  border: none;
+  border-radius: 0;
+  padding: 13px 16px;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 100;
+  font-size: 16px;
+  color: #1a1c1c;
+  outline: none;
+}
+
+.auth-form input::placeholder {
+  color: #d6c3ba;
+}
+
+.password-input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary {
+  width: 100%;
+  height: 56px;
+  background: linear-gradient(135deg, #401e09 0%, #5a331c 100%);
+  box-shadow:
+    0px 10px 15px -3px rgba(64, 30, 9, 0.1),
+    0px 4px 6px -4px rgba(64, 30, 9, 0.1);
+  border-radius: 8px;
+  border: none;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #ffffff;
+  letter-spacing: -0.4px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: transform 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 8px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.divider span {
+  padding: 0 16px;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #d6c3ba;
+}
+
+.btn-google {
+  width: 100%;
+  height: 56px;
+  background: #f3f3f3;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #51443e;
+  letter-spacing: -0.4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-google:hover {
+  background: #ebebeb;
+}
+
+.card-footer {
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid #eeeeee;
+  text-align: center;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #51443e;
+}
+
+.link-signup {
+  font-weight: 700;
+  color: #401e09;
+  text-decoration: none;
+}
+
+/* Responsiveness */
+@media (max-width: 1120px) {
+  .auth-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .auth-left {
+    display: none;
+  }
+
+  .auth-right {
+    max-width: 100%;
+    justify-content: center;
+    margin-top: 0;
+  }
+
+  .auth-card {
+    padding: 40px 24px;
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 560px) {
+  .auth-main {
+    padding: 16px;
+    background: #ffffff;
+  }
+
+  .bg-decor-1,
+  .bg-decor-2,
+  .bg-decor-3 {
+    display: none;
+  }
+
+  .auth-card {
+    width: 100%;
+    border-radius: 22px;
+    padding: 24px 18px;
+    box-shadow: none;
+    border: 1px solid #ebe3df;
+    background: #ffffff;
+  }
+
+  .card-title {
+    font-size: 28px;
+    color: #4e2c1d;
+  }
+
+  .auth-form input[type="email"],
+  .auth-form input[type="password"],
+  .auth-form input[type="text"] {
+    background: #ffffff;
+    border: 1px solid #ebe3df;
+    border-radius: 10px;
+  }
+
+  .btn-primary {
+    border-radius: 9999px;
+    background: #4e2c1d;
+    box-shadow: none;
+  }
+
+  .btn-google {
+    background: #ffffff;
+    border: 1px solid #ebe3df;
+    border-radius: 10px;
+  }
+}

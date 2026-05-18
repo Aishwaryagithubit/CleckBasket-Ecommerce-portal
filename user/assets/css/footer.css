@@ -1,0 +1,231 @@
+/* ===== FOOTER ===== */
+.footer {
+    background-color: #f0f4f3;
+    padding: 40px 0 20px;
+    font-family: 'Poppins', sans-serif;
+    margin-top: 80px;
+}
+
+/* ===== TOP ===== */
+.footer-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+    width: 90%;
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* COLUMN */
+.footer-column h3 {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.footer-column ul {
+    list-style: none;
+}
+
+.footer-column ul li {
+    margin-bottom: 8px;
+}
+
+.footer-column ul li a {
+    text-decoration: none;
+    color: #333;
+    font-size: 0.95rem;
+    transition: 0.3s;
+}
+
+.footer-column ul li a:hover {
+    color: #6cae75;
+}
+
+/* ===== BOTTOM ===== */
+.footer-bottom {
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* TEXT */
+.footer-bottom p {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* ICONS */
+.social-icons {
+    display: flex;
+    gap: 20px;
+}
+
+.social-icons a {
+    color: #333;
+    font-size: 18px;
+    transition: 0.3s;
+}
+
+.social-icons a:hover {
+    color: #6cae75;
+    transform: scale(1.1);
+}
+
+/* ===== RESPONSIVE (Footer Grid) ===== */
+@media (max-width: 768px) {
+    .footer-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .footer {
+        padding: 28px 0 16px;
+        margin-top: 40px;
+    }
+
+    .footer-column h3 {
+        font-size: 1.05rem;
+    }
+}
+
+
+/* ============================================================
+   THIN FIGMA FOOTER BAR (used across most pages)
+   ============================================================ */
+.footer-bar {
+    background: #f3f3f3;
+    border-top: 1px solid #e0e0e0;
+    padding: 14px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* CONTAINER */
+.footer-bar-container {
+    width: 95%;
+    max-width: 1400px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+/* ===== LEFT (LOGO) ===== */
+.footer-left {
+    flex-shrink: 0;
+}
+
+.footer-left img {
+    height: 26px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* ===== CENTER (LINKS) ===== */
+.footer-center {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.footer-center a {
+    text-decoration: none;
+    font-size: 11px;
+    color: #8a8a8a;
+    letter-spacing: 1px;
+    font-weight: 500;
+    transition: color 0.3s;
+    white-space: nowrap;
+}
+
+.footer-center a:hover {
+    color: #6cae75;
+}
+
+/* ===== RIGHT (COPYRIGHT) ===== */
+.footer-right {
+    flex-shrink: 0;
+}
+
+.footer-right p {
+    font-size: 11px;
+    color: #9a9a9a;
+    margin: 0;
+    white-space: nowrap;
+}
+
+
+/* ============================================================
+   RESPONSIVE — Footer Bar (Tablet)
+   ============================================================ */
+@media (max-width: 900px) {
+    .footer-bar-container {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+
+    .footer-center {
+        gap: 16px;
+        justify-content: center;
+    }
+
+    .footer-right p {
+        white-space: normal;
+    }
+}
+
+
+/* ============================================================
+   RESPONSIVE — Footer Bar (Mobile)
+   ============================================================ */
+@media (max-width: 480px) {
+    .footer-bar {
+        padding: 16px 0;
+    }
+
+    .footer-bar-container {
+        gap: 10px;
+    }
+
+    .footer-center {
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .footer-center a {
+        font-size: 10px;
+        letter-spacing: 0.6px;
+    }
+
+    .footer-left img {
+        height: 22px;
+    }
+
+    .footer-right p {
+        font-size: 10px;
+    }
+}
