@@ -1,10 +1,14 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
+
 $current_path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 $current_page = strtolower(basename($current_path ?? ''));
 
 function is_active_nav(string $page, string $current_page): string {
     return $page === $current_page ? ' active' : '';
 }
+
+$session_user = $_SESSION['user_name'] ?? '';
 ?>
 <!doctype html>
 <html lang="en">
@@ -44,40 +48,6 @@ function is_active_nav(string $page, string $current_page): string {
         }
 
         .search-dropdown.active { display: flex; }
-
-        /* ═══════════════════════════════════
-           SIDEBAR
-        ═══════════════════════════════════ */
-        .sd-sidebar {
-            width: 130px;
-            flex-shrink: 0;
-            border-right: 1px solid #f0f0f0;
-            background: #fafafa;
-            padding: 8px 0;
-        }
-
-        .sd-sidebar-item {
-            display: block;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: #555;
-            cursor: pointer;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            border-left: 3px solid transparent;
-            transition: background .12s, color .12s;
-            text-decoration: none;
-        }
-
-        .sd-sidebar-item:hover { background:#f0f0f0; color:#222; }
-
-        .sd-sidebar-item.active {
-            border-left-color: #3a7d2c;
-            color: #3a7d2c;
-            font-weight: 600;
-            background: #f0f8ec;
-        }
 
         /* ═══════════════════════════════════
            RESULTS COLUMN
@@ -388,14 +358,6 @@ function is_active_nav(string $page, string $current_page): string {
                 <!-- Rich dropdown -->
                 <div class="search-dropdown" id="desktopSearchDropdown">
 
-                    <!-- Sidebar -->
-                    <div class="sd-sidebar">
-                        <a class="sd-sidebar-item active" data-section="results" href="#">Results</a>
-                        <a class="sd-sidebar-item" data-section="category" href="#">Category</a>
-                        <a class="sd-sidebar-item" data-section="rating" href="#">Rating</a>
-                        <a class="sd-sidebar-item" data-section="price" href="#">Price</a>
-                    </div>
-
                     <!-- Results panel -->
                     <div class="sd-results-panel" id="sdResultsPanel">
                         <div class="sd-no-results">Start typing to search products</div>
@@ -437,13 +399,13 @@ function is_active_nav(string $page, string $current_page): string {
             </div>
 
             <!-- User -->
-            <a href="/cleckbasket/includes/pages/login.php" class="icon-btn user-btn" aria-label="My Account">
+            <a href="<?php echo $session_user ? '/cleckbasket/includes/pages/profile.php' : '/cleckbasket/includes/pages/customer_register.php'; ?>" class="icon-btn user-btn" aria-label="My Account">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                     <circle cx="12" cy="7" r="4"/>
                 </svg>
-                <span class="user-greeting">Hi, Anoushka!</span>
+                <span class="user-greeting"><?php echo $session_user ? 'Hi, ' . htmlspecialchars($session_user) . '!' : 'Sign Up'; ?></span>
             </a>
 
             <!-- Cart -->
@@ -464,6 +426,7 @@ function is_active_nav(string $page, string $current_page): string {
                              a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23
                              l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                 </svg>
+                <span class="badge" id="favCount" style="display:none">0</span>
             </a>
         </div>
 
@@ -474,40 +437,6 @@ function is_active_nav(string $page, string $current_page): string {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    /* ── PRODUCT DATA ──────────────────────────────────
-       Replace ALL_PRODUCTS with a real API call:
-         const res  = await fetch(`/cleckbasket/api/search.php?q=${encodeURIComponent(q)}`);
-         const data = await res.json(); // [{id,name,category,price,rating,slug,image}, ...]
-    ─────────────────────────────────────────────────── */
-    const ALL_PRODUCTS = [
-        { id:1,  name:'Organic Sourdough Bread',   category:'Bakery',     price:4.99,  rating:4.8, emoji:'🍞' },
-        { id:2,  name:'Butter Croissant',           category:'Bakery',     price:2.49,  rating:4.5, emoji:'🥐' },
-        { id:3,  name:'Whole Wheat Baguette',       category:'Bakery',     price:3.29,  rating:4.2, emoji:'🥖' },
-        { id:4,  name:'Blueberry Muffin 6-pack',    category:'Bakery',     price:5.49,  rating:4.6, emoji:'🧁' },
-        { id:5,  name:'Cinnamon Roll',              category:'Bakery',     price:3.99,  rating:4.3, emoji:'🍩' },
-        { id:6,  name:'Fresh Spinach 200g',         category:'Vegetables', price:1.89,  rating:4.4, emoji:'🥬' },
-        { id:7,  name:'Cherry Tomatoes 500g',       category:'Vegetables', price:2.99,  rating:4.7, emoji:'🍅' },
-        { id:8,  name:'Organic Carrots 1kg',        category:'Vegetables', price:1.49,  rating:4.1, emoji:'🥕' },
-        { id:9,  name:'Avocado (each)',              category:'Fruits',     price:1.19,  rating:4.5, emoji:'🥑' },
-        { id:10, name:'Strawberries 300g',          category:'Fruits',     price:3.49,  rating:4.8, emoji:'🍓' },
-        { id:11, name:'Bananas 1kg',                category:'Fruits',     price:0.99,  rating:4.3, emoji:'🍌' },
-        { id:12, name:'Granny Smith Apples 4pk',    category:'Fruits',     price:2.79,  rating:4.0, emoji:'🍏' },
-        { id:13, name:'Whole Milk 2L',              category:'Dairy',      price:1.79,  rating:4.2, emoji:'🥛' },
-        { id:14, name:'Cheddar Cheese 400g',        category:'Dairy',      price:4.29,  rating:4.6, emoji:'🧀' },
-        { id:15, name:'Free Range Eggs 12pk',       category:'Dairy',      price:3.99,  rating:4.9, emoji:'🥚' },
-        { id:16, name:'Greek Yogurt 500g',          category:'Dairy',      price:2.59,  rating:4.5, emoji:'🫙' },
-        { id:17, name:'Chicken Breast 500g',        category:'Meat',       price:6.49,  rating:4.7, emoji:'🍗' },
-        { id:18, name:'Atlantic Salmon Fillet',     category:'Seafood',    price:8.99,  rating:4.8, emoji:'🐟' },
-        { id:19, name:'Basmati Rice 2kg',           category:'Grains',     price:3.79,  rating:4.3, emoji:'🌾' },
-        { id:20, name:'Extra Virgin Olive Oil 1L',  category:'Pantry',     price:7.99,  rating:4.6, emoji:'🫒' },
-        { id:21, name:'Honey Jar 340g',             category:'Pantry',     price:4.49,  rating:4.7, emoji:'🍯' },
-        { id:22, name:'Orange Juice 1L',            category:'Beverages',  price:2.99,  rating:4.2, emoji:'🍊' },
-        { id:23, name:'Green Tea 20 bags',          category:'Beverages',  price:2.29,  rating:4.4, emoji:'🍵' },
-        { id:24, name:'Dark Chocolate 100g',        category:'Snacks',     price:2.99,  rating:4.5, emoji:'🍫' },
-        { id:25, name:'Almonds 200g',               category:'Snacks',     price:3.99,  rating:4.6, emoji:'🌰' },
-    ];
-
-    const CATEGORIES = [...new Set(ALL_PRODUCTS.map(p => p.category))].sort();
 
     /* ── Filter state ── */
     const applied  = { cats: new Set(), minRating: null, minPrice: null, maxPrice: null };
@@ -529,18 +458,22 @@ document.addEventListener('DOMContentLoaded', function () {
     let debounceTimer = null;
     let focusedIdx    = -1;
 
-    /* ── Build category chips ── */
-    CATEGORIES.forEach(cat => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'sd-chip';
-        btn.textContent = cat;
-        btn.addEventListener('click', () => {
-            btn.classList.toggle('selected');
-            btn.classList.contains('selected') ? pending.cats.add(cat) : pending.cats.delete(cat);
+    /* ── Load real categories from DB ── */
+    fetch('/cleckbasket/backend/search.php')
+        .then(r => r.json())
+        .then(data => {
+            (data.categories || []).forEach(cat => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'sd-chip';
+                btn.textContent = cat;
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('selected');
+                    btn.classList.contains('selected') ? pending.cats.add(cat) : pending.cats.delete(cat);
+                });
+                chipGrid.appendChild(btn);
+            });
         });
-        chipGrid.appendChild(btn);
-    });
 
     /* ── Build rating rows ── */
     function starRowHtml(n) {
@@ -583,16 +516,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (currentQuery) renderResults(currentQuery);
     });
 
-    /* ── Sidebar highlight ── */
-    document.querySelectorAll('.sd-sidebar-item').forEach(item => {
-        item.addEventListener('click', e => {
-            e.preventDefault();
-            document.querySelectorAll('.sd-sidebar-item').forEach(el => el.classList.remove('active'));
-            item.classList.add('active');
-            if (item.dataset.section === 'results') resultsPanel.scrollTop = 0;
-        });
-    });
-
     /* ── Helpers ── */
     function hl(text, q) {
         if (!q) return text;
@@ -604,16 +527,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return Array.from({length:5},(_,i) =>
             `<span class="sd-result-star ${i<Math.round(n)?'on':'off'}" style="font-size:${size}px">★</span>`
         ).join('');
-    }
-
-    function filterProducts(products) {
-        return products.filter(p => {
-            if (applied.cats.size && !applied.cats.has(p.category)) return false;
-            if (applied.minRating !== null && p.rating < applied.minRating) return false;
-            if (applied.minPrice  !== null && p.price < applied.minPrice)   return false;
-            if (applied.maxPrice  !== null && p.price > applied.maxPrice)   return false;
-            return true;
-        });
     }
 
     /* ── Skeleton ── */
@@ -628,56 +541,73 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>`).join('')}</div>`;
     }
 
-    /* ── Render results ── */
-    function renderResults(query) {
-        const q = query.trim().toLowerCase();
-        let results = q
-            ? ALL_PRODUCTS.filter(p =>
-                p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
-            : [];
-
-        results = filterProducts(results);
-
-        if (!results.length) {
-            resultsPanel.innerHTML = `<div class="sd-no-results">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="1.5" style="display:block;margin:0 auto 8px;opacity:.3">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                ${q ? `No results for "<strong>${query}</strong>"` : 'Start typing to search products'}
-            </div>`;
+    /* ── Render results (live DB search) ── */
+    async function renderResults(query) {
+        const q = query.trim();
+        if (!q) {
+            resultsPanel.innerHTML = `<div class="sd-no-results">Start typing to search products</div>`;
             return;
         }
 
-        const shown = results.slice(0, 8);
-        const more  = results.length - shown.length;
-        const searchUrl = `/cleckbasket/search.php?q=${encodeURIComponent(query)}`;
+        const url = new URL('/cleckbasket/backend/search.php', window.location.origin);
+        url.searchParams.set('q', q);
+        if (applied.cats.size)         url.searchParams.set('cats',       [...applied.cats].join(','));
+        if (applied.minRating)         url.searchParams.set('min_rating', applied.minRating);
+        if (applied.minPrice !== null) url.searchParams.set('min_price',  applied.minPrice);
+        if (applied.maxPrice !== null) url.searchParams.set('max_price',  applied.maxPrice);
 
-        resultsPanel.innerHTML = `
-            <div class="sd-section-label">Products (${results.length})</div>
-            <ul class="sd-results-list" role="listbox">
-                ${shown.map((p, i) => `
-                <li>
-                    <a href="/cleckbasket/includes/pages/product.php?id=${p.id}"
-                       class="sd-result-item" data-idx="${i}">
-                        <div class="sd-result-thumb">${p.emoji}</div>
-                        <div class="sd-result-info">
-                            <div class="sd-result-name">${hl(p.name, query)}</div>
-                            <div class="sd-result-meta">
-                                <span>${p.category}</span>
-                                <span style="display:flex;gap:1px">${starsHtml(p.rating, 10)}</span>
-                                <span>${p.rating.toFixed(1)}</span>
+        try {
+            const res     = await fetch(url);
+            const data    = await res.json();
+            const results = data.products || [];
+
+            if (!results.length) {
+                resultsPanel.innerHTML = `<div class="sd-no-results">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" style="display:block;margin:0 auto 8px;opacity:.3">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    No results for "<strong>${q}</strong>"
+                </div>`;
+                return;
+            }
+
+            const shown     = results.slice(0, 8);
+            const more      = results.length - shown.length;
+            const searchUrl = `/cleckbasket/search.php?q=${encodeURIComponent(query)}`;
+
+            resultsPanel.innerHTML = `
+                <div class="sd-section-label">Products (${results.length}${results.length >= 30 ? '+' : ''})</div>
+                <ul class="sd-results-list" role="listbox">
+                    ${shown.map((p, i) => `
+                    <li>
+                        <a href="/cleckbasket/includes/pages/product_detail.php?id=${p.id}"
+                           class="sd-result-item" data-idx="${i}">
+                            <div class="sd-result-thumb">
+                                ${p.image
+                                    ? `<img src="/cleckbasket/assets/images/${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onerror="this.style.display='none'">`
+                                    : '<span style="font-size:20px">🛒</span>'}
                             </div>
-                        </div>
-                        <div class="sd-result-price">£${p.price.toFixed(2)}</div>
-                    </a>
-                </li>`).join('')}
-            </ul>
-            ${more > 0 ? `<div class="sd-footer">
-                <a href="${searchUrl}" class="sd-view-all">View all ${results.length} results →</a>
-            </div>` : ''}`;
+                            <div class="sd-result-info">
+                                <div class="sd-result-name">${hl(p.name, query)}</div>
+                                <div class="sd-result-meta">
+                                    <span>${p.category}</span>
+                                    <span style="display:flex;gap:1px">${starsHtml(p.rating, 10)}</span>
+                                    <span>${p.rating > 0 ? p.rating.toFixed(1) : 'No reviews'}</span>
+                                </div>
+                            </div>
+                            <div class="sd-result-price">£${p.price.toFixed(2)}</div>
+                        </a>
+                    </li>`).join('')}
+                </ul>
+                ${more > 0 ? `<div class="sd-footer">
+                    <a href="${searchUrl}" class="sd-view-all">View all ${results.length}${results.length >= 30 ? '+' : ''} results →</a>
+                </div>` : ''}`;
 
-        focusedIdx = -1;
+            focusedIdx = -1;
+        } catch (err) {
+            resultsPanel.innerHTML = `<div class="sd-no-results">Search unavailable. Please try again.</div>`;
+        }
     }
 
     /* ── Open / close ── */
@@ -694,7 +624,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     searchInput.addEventListener('focus', function () {
-        if (this.value.trim()) open();
+        open();
     });
 
     /* ── Keyboard nav ── */
@@ -757,34 +687,41 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>`).join('')}</div>`;
             mobDropdown.classList.add('active');
 
-            mobTimer = setTimeout(() => {
-                const results = ALL_PRODUCTS.filter(p =>
-                    p.name.toLowerCase().includes(q.toLowerCase()) ||
-                    p.category.toLowerCase().includes(q.toLowerCase())
-                ).slice(0, 6);
+            mobTimer = setTimeout(async () => {
+                try {
+                    const res  = await fetch(`/cleckbasket/backend/search.php?q=${encodeURIComponent(q)}`);
+                    const data = await res.json();
+                    const results = (data.products || []).slice(0, 6);
 
-                if (!results.length) {
-                    mobDropdown.innerHTML = `<div class="sd-no-results">No results for "<strong>${q}</strong>"</div>`;
-                    return;
+                    if (!results.length) {
+                        mobDropdown.innerHTML = `<div class="sd-no-results">No results for "<strong>${q}</strong>"</div>`;
+                        return;
+                    }
+
+                    function hl2(t, qry) {
+                        const esc = qry.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+                        return t.replace(new RegExp(`(${esc})`,'gi'),'<mark>$1</mark>');
+                    }
+
+                    mobDropdown.innerHTML = `<ul class="sd-results-list">
+                        ${results.map(p=>`<li>
+                            <a href="/cleckbasket/includes/pages/product_detail.php?id=${p.id}" class="sd-result-item">
+                                <div class="sd-result-thumb">
+                                    ${p.image
+                                        ? `<img src="/cleckbasket/assets/images/${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onerror="this.style.display='none'">`
+                                        : '<span style="font-size:20px">🛒</span>'}
+                                </div>
+                                <div class="sd-result-info">
+                                    <div class="sd-result-name">${hl2(p.name,q)}</div>
+                                    <div class="sd-result-meta">${p.category} · £${p.price.toFixed(2)}</div>
+                                </div>
+                                <div class="sd-result-price">£${p.price.toFixed(2)}</div>
+                            </a>
+                        </li>`).join('')}
+                    </ul>`;
+                } catch (err) {
+                    mobDropdown.innerHTML = `<div class="sd-no-results">Search unavailable.</div>`;
                 }
-
-                function hl2(t, qry) {
-                    const esc = qry.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-                    return t.replace(new RegExp(`(${esc})`,'gi'),'<mark>$1</mark>');
-                }
-
-                mobDropdown.innerHTML = `<ul class="sd-results-list">
-                    ${results.map(p=>`<li>
-                        <a href="/cleckbasket/includes/pages/product.php?id=${p.id}" class="sd-result-item">
-                            <div class="sd-result-thumb">${p.emoji}</div>
-                            <div class="sd-result-info">
-                                <div class="sd-result-name">${hl2(p.name,q)}</div>
-                                <div class="sd-result-meta">${p.category} · £${p.price.toFixed(2)}</div>
-                            </div>
-                            <div class="sd-result-price">£${p.price.toFixed(2)}</div>
-                        </a>
-                    </li>`).join('')}
-                </ul>`;
             }, 200);
         });
 
@@ -808,14 +745,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ═══ AUTH STATE ═══ */
     const KEYS = { isLogin:'is_login', userName:'user_name' };
-    const isLogin  = localStorage.getItem(KEYS.isLogin) === 'true';
-    const userName = localStorage.getItem(KEYS.userName) || 'Anoushka';
+    const sessionUser  = <?php echo json_encode($session_user); ?>;
+    const isLogin  = sessionUser || localStorage.getItem(KEYS.isLogin) === 'true';
+    const userName = sessionUser || localStorage.getItem(KEYS.userName) || '';
     const userGreeting = document.querySelector('.user-greeting');
     const userBtn      = document.querySelector('.user-btn');
 
     if (userGreeting && userBtn) {
         if (isLogin) {
-            userGreeting.textContent = `Hi, ${userName.substring(0,3)}...!`;
+            userGreeting.textContent = `Hi, ${userName}!`;
             userBtn.href = '/cleckbasket/includes/pages/profile.php';
 
             const logoutLink = document.createElement('a');
@@ -832,12 +770,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.preventDefault();
                 localStorage.removeItem(KEYS.isLogin);
                 localStorage.removeItem(KEYS.userName);
-                window.location.href = '/cleckbasket/includes/pages/login.php';
+                window.location.href = '/cleckbasket/backend/logout.php';
             });
             userBtn.insertAdjacentElement('afterend', logoutLink);
         } else {
             userGreeting.textContent = 'Sign Up';
             userBtn.href = '/cleckbasket/includes/pages/customer_register.php';
+            localStorage.removeItem(KEYS.isLogin);
+            localStorage.removeItem(KEYS.userName);
 
             const loginLink = document.createElement('a');
             loginLink.href = '/cleckbasket/includes/pages/login.php';

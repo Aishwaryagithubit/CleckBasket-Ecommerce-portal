@@ -6,79 +6,183 @@
     <title>Privacy Policy — CleckBasket</title>
     <link rel="stylesheet" href="/cleckbasket/assets/css/style.css">
     <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: var(--font-sans); }
-      .page-wrapper { padding: 2rem 1.5rem; max-width: 760px; margin: 0 auto; }
-      .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
-      .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 99px; margin-bottom: 12px; }
-      .badge-blue { background: var(--color-background-info); color: var(--color-text-info); }
-      .page-title { font-size: 24px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 8px; }
-      .page-meta { font-size: 13px; color: var(--color-text-tertiary); }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body { font-family: 'Segoe UI', Arial, sans-serif; background: #FFF8F5; color: #29170C; }
+
+      .page-wrapper { max-width: 760px; margin: 2rem auto 4rem; padding: 0 1.25rem; }
+
+      /* Hero header */
+      .page-header {
+        background: linear-gradient(135deg, #1a4220 0%, #2d6b31 55%, #3a8040 100%);
+        padding: 2.75rem 2.5rem 2.25rem;
+        border-radius: 20px;
+        margin-bottom: 2.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(26,66,32,0.22);
+      }
+      .page-header::before {
+        content: '';
+        position: absolute; top: -50px; right: -50px;
+        width: 220px; height: 220px; border-radius: 50%;
+        background: rgba(255,255,255,0.07);
+      }
+      .page-header::after {
+        content: '';
+        position: absolute; bottom: -35px; left: 30px;
+        width: 140px; height: 140px; border-radius: 50%;
+        background: rgba(87,43,18,0.12);
+      }
+
+      .badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+        padding: 5px 13px; border-radius: 99px; margin-bottom: 14px;
+        background: rgba(255,255,255,0.15); color: #fff;
+        border: 1px solid rgba(255,255,255,0.3);
+        position: relative; z-index: 1;
+      }
+
+      .page-title {
+        font-size: 30px; font-weight: 700; color: #fff;
+        margin-bottom: 8px; position: relative; z-index: 1;
+      }
+      .page-meta {
+        font-size: 13px; color: rgba(255,255,255,0.72);
+        position: relative; z-index: 1;
+      }
+
+      /* Sections */
       .section { margin-bottom: 2rem; }
-      .section-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-      .section-title i { font-size: 16px; color: var(--color-text-secondary); }
-      .section-body { font-size: 14px; color: var(--color-text-secondary); line-height: 1.75; }
-      .highlight-box { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 1rem 1.25rem; margin: 1rem 0; }
-      .highlight-box p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.7; }
-      .list-item { display: flex; gap: 10px; margin-bottom: 8px; font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; }
-      .list-item i { font-size: 15px; margin-top: 2px; flex-shrink: 0; color: var(--color-text-tertiary); }
-      .divider { height: 0.5px; background: var(--color-border-tertiary); margin: 1.5rem 0; }
-      .contact-box { display: flex; align-items: center; gap: 12px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
-      .contact-box i { font-size: 20px; color: var(--color-text-secondary); }
-      .contact-box .ct { font-size: 13px; color: var(--color-text-secondary); }
-      .contact-box .ct a { color: var(--color-text-info); text-decoration: none; }
-      .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-      .tag { font-size: 12px; padding: 4px 10px; border-radius: 99px; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); }
+
+      .section-title {
+        font-size: 15px; font-weight: 700; color: #29170C;
+        margin-bottom: 12px;
+        display: flex; align-items: center; gap: 10px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #D5E8CD;
+      }
+      .section-title i { font-size: 16px; color: #4A7C4E; }
+
+      .section-body { font-size: 14px; color: #51443E; line-height: 1.8; }
+
+      /* Highlight box */
+      .highlight-box {
+        background: #fff;
+        border: 1px solid #E8D5C4;
+        border-left: 4px solid #4A7C4E;
+        border-radius: 10px;
+        padding: 1.1rem 1.4rem;
+        margin: 1rem 0;
+        box-shadow: 0 2px 10px rgba(41,23,12,0.05);
+      }
+      .highlight-box p { font-size: 14px; color: #51443E; line-height: 1.75; }
+
+      /* List items */
+      .list-item {
+        display: flex; gap: 12px; margin-bottom: 10px;
+        font-size: 14px; color: #51443E; line-height: 1.65;
+        padding: 10px 14px;
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #E8D5C4;
+        transition: box-shadow 0.2s;
+      }
+      .list-item:hover { box-shadow: 0 3px 12px rgba(41,23,12,0.07); }
+      .list-item i { font-size: 15px; margin-top: 2px; flex-shrink: 0; color: #4A7C4E; }
+      .list-item strong { font-weight: 600; color: #29170C; }
+
+      /* Divider */
+      .divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, #D5C0AE, transparent);
+        margin: 1.75rem 0;
+      }
+
+      /* Contact box */
+      .contact-box {
+        display: flex; align-items: flex-start; gap: 16px;
+        background: linear-gradient(135deg, #572B12 0%, #401E09 100%);
+        border-radius: 14px;
+        padding: 1.3rem 1.5rem;
+        box-shadow: 0 6px 24px rgba(87,43,18,0.22);
+      }
+      .contact-box i { font-size: 22px; color: #D5E8CD; flex-shrink: 0; margin-top: 2px; }
+      .contact-box .ct { font-size: 13.5px; color: rgba(255,255,255,0.85); line-height: 1.65; }
+      .contact-box .ct a { color: #D5E8CD; text-decoration: none; font-weight: 600; }
+      .contact-box .ct a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
     <?php include __DIR__ . '/../header.php'; ?>
-    
+
     <main class="page-wrapper">
+
       <div class="page-header">
-        <span class="badge badge-blue"><i class="ti ti-shield-check" aria-hidden="true"></i>Data Protection</span>
+        <span class="badge"><i class="ti ti-shield-check" aria-hidden="true"></i>Data Protection</span>
         <div class="page-title">Privacy Policy</div>
-        <div class="page-meta">Effective date: January 1, 2025 &nbsp;·&nbsp; Last updated: March 15, 2025</div>
+        <div class="page-meta">Effective date: 1 January 2026 &nbsp;·&nbsp; Last updated: 1 January 2026</div>
       </div>
 
       <div class="section">
         <div class="section-title"><i class="ti ti-info-circle" aria-hidden="true"></i>Overview</div>
-        <div class="section-body">At CleckBasket, we take your privacy seriously. This policy explains what data we collect, why we collect it, and how we protect it. By using our services, you agree to the practices described here.</div>
+        <div class="section-body">
+          CleckBasket ("we", "us", "our") is committed to protecting the personal information of all users of our platform. This Privacy Policy explains what data we collect, the purposes for which it is used, how it is stored, and the rights you have regarding your information. By registering for or using CleckBasket, you agree to the practices described in this policy.
+        </div>
       </div>
 
       <div class="section">
         <div class="section-title"><i class="ti ti-database" aria-hidden="true"></i>Information we collect</div>
-        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong style="font-weight:500;color:var(--color-text-primary)">Account data</strong> — name, email address, password hash, and profile preferences you provide on registration.</span></div>
-        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong style="font-weight:500;color:var(--color-text-primary)">Usage data</strong> — pages visited, features used, timestamps, and browser/device type collected automatically.</span></div>
-        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong style="font-weight:500;color:var(--color-text-primary)">Payment data</strong> — billing address and last four digits of card; full card numbers are handled by our PCI-compliant processor and never stored by us.</span></div>
-        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong style="font-weight:500;color:var(--color-text-primary)">Cookies</strong> — session tokens and analytics cookies to keep you signed in and improve performance.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong>Account data</strong> — your name, email address, phone number, and a hashed version of your password, provided when you register.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong>Order data</strong> — items purchased, collection slot selections, order history, and payment confirmation records.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong>Payment data</strong> — transaction amounts and payment method type. Full card details are handled exclusively by our PCI-compliant payment processor and are never stored by CleckBasket.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong>Usage data</strong> — pages visited, features used, and browser or device type, collected automatically to help us improve the platform.</span></div>
       </div>
 
       <div class="divider"></div>
 
       <div class="section">
         <div class="section-title"><i class="ti ti-share" aria-hidden="true"></i>How we use your data</div>
-        <div class="highlight-box"><p>We use your information to provide and improve our services, send transactional emails (receipts, security alerts), personalize your experience, and comply with legal obligations. We do <strong style="font-weight:500;color:var(--color-text-primary)">not</strong> sell your personal data to third parties.</p></div>
+        <div class="highlight-box">
+          <p>We use your personal information solely to provide and improve the CleckBasket service — including processing orders, sending transactional emails (order confirmations, collection reminders), and maintaining account security. We do <strong>not</strong> sell, rent, or share your personal data with third parties for marketing purposes.</p>
+        </div>
+        <div class="list-item" style="margin-top:10px;"><i class="ti ti-point" aria-hidden="true"></i><span>Processing and fulfilling your collection orders with local traders.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span>Sending transactional communications such as order confirmations and OTP verification codes.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span>Improving platform performance and resolving technical issues.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span>Complying with applicable legal and regulatory obligations.</span></div>
       </div>
 
       <div class="section">
-        <div class="section-title"><i class="ti ti-user-check" aria-hidden="true"></i>Your rights</div>
-        <div class="tag-row">
-          <span class="tag">Access your data</span>
-          <span class="tag">Request deletion</span>
-          <span class="tag">Data portability</span>
-          <span class="tag">Correct inaccuracies</span>
-          <span class="tag">Withdraw consent</span>
-          <span class="tag">Opt out of marketing</span>
+        <div class="section-title"><i class="ti ti-lock" aria-hidden="true"></i>Data security</div>
+        <div class="section-body">
+          We implement appropriate technical and organisational measures to protect your personal information against unauthorised access, loss, or disclosure. Passwords are stored using industry-standard one-way hashing and are never held in plain text. Access to personal data within our systems is restricted to authorised personnel only.
         </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-user-check" aria-hidden="true"></i>Your rights</div>
+        <div class="section-body" style="margin-bottom:12px;">Under applicable data protection law, you have the right to:</div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong>Access</strong> — request a copy of the personal data we hold about you.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong>Rectification</strong> — ask us to correct any inaccurate or incomplete information.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong>Erasure</strong> — request deletion of your account and associated personal data, subject to legal retention requirements.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong>Portability</strong> — receive your data in a structured, machine-readable format.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong>Withdrawal of consent</strong> — opt out of any optional data processing at any time.</span></div>
       </div>
 
       <div class="divider"></div>
 
       <div class="contact-box">
         <i class="ti ti-mail" aria-hidden="true"></i>
-        <div class="ct">Questions about this policy? Contact our Privacy Team at <a href="mailto:privacy@cleckbasket.com">privacy@cleckbasket.com</a> or write to our office.</div>
+        <div class="ct">
+          To exercise any of your rights or for questions about this policy, contact our team at
+          <a href="mailto:privacy@cleckbasket.com">privacy@cleckbasket.com</a>.
+          We aim to respond to all requests within 30 days.
+        </div>
       </div>
+
     </main>
 
     <?php include __DIR__ . '/../footer.php'; ?>

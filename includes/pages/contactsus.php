@@ -1,4 +1,4 @@
-<?php /* Contact Us Page — Figma Layout */ ?>
+<?php /* Contact Us Page */ ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -30,7 +30,9 @@
             <div class="contact-form-card">
                 <h2 class="form-card-title">Send us a message</h2>
 
-                <form class="contact-form" action="#" method="POST">
+                <div id="contactAlert" style="display:none;margin-bottom:18px;padding:14px 18px;border-radius:12px;font-size:15px;font-weight:500;"></div>
+
+                <form class="contact-form" id="contactForm" action="#" method="POST">
 
                     <div class="form-field">
                         <label for="firstName">First Name</label>
@@ -136,5 +138,55 @@
     </div>
 
     <?php include '../footer.php'; ?>
+
+    <script>
+    document.getElementById('contactForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const form    = this;
+        const alert   = document.getElementById('contactAlert');
+        const btn     = form.querySelector('.btn-submit');
+        const data    = {
+            first_name:     form.querySelector('[name="first_name"]').value.trim(),
+            last_name:      form.querySelector('[name="last_name"]').value.trim(),
+            email:          form.querySelector('[name="email"]').value.trim(),
+            contact_number: form.querySelector('[name="contact_number"]').value.trim(),
+            subject:        form.querySelector('[name="subject"]').value,
+            message:        form.querySelector('[name="message"]').value.trim(),
+        };
+
+        btn.disabled    = true;
+        btn.textContent = 'Sending…';
+        alert.style.display = 'none';
+
+        try {
+            const res  = await fetch('/cleckbasket/backend/submit_contact.php', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify(data),
+            });
+            const json = await res.json();
+
+            alert.textContent   = json.message;
+            alert.style.display = 'block';
+            if (json.success) {
+                alert.style.background = '#e8f5e9';
+                alert.style.color      = '#2e7d32';
+                form.reset();
+            } else {
+                alert.style.background = '#ffebee';
+                alert.style.color      = '#c62828';
+            }
+        } catch (err) {
+            alert.textContent      = 'Network error. Please try again.';
+            alert.style.display    = 'block';
+            alert.style.background = '#ffebee';
+            alert.style.color      = '#c62828';
+        } finally {
+            btn.disabled    = false;
+            btn.textContent = 'Submit Message';
+        }
+    });
+    </script>
 </body>
 </html>

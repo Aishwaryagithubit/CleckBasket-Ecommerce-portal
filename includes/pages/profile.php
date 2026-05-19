@@ -1,4 +1,84 @@
-<?php /* Customer Profile Page — Frontend Only */ ?>
+<?php
+if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/../../backend/connect.php';
+
+$dbUser = ['firstname' => '', 'lastname' => '', 'email' => '', 'contact_no' => ''];
+$recentOrders = [];
+$orderCount   = 0;
+
+if (!empty($_SESSION['user_id'])) {
+    $bind_uid = $_SESSION['user_id'];   // local var — OCI8 needs a real reference
+    $conn = getDBConnection();
+    if ($conn) {
+        // Load user profile
+        $s = oci_parse($conn, "SELECT firstname, lastname, email, contact_no FROM users WHERE user_id = :user_id");
+        oci_bind_by_name($s, ':user_id', $bind_uid);
+        oci_execute($s);
+        $row = oci_fetch_assoc($s);
+        if ($row) {
+            $dbUser = [
+                'firstname'  => $row['FIRSTNAME'] ?? '',
+                'lastname'   => $row['LASTNAME']  ?? '',
+                'email'      => $row['EMAIL']      ?? '',
+                'contact_no' => $row['CONTACT_NO'] ?? '',
+            ];
+        }
+        oci_free_statement($s);
+
+        // Load recent orders (up to 5 most recent orders with their products)
+        $uid_val = $bind_uid;
+        $sql_o = "SELECT o.order_id, o.order_status, o.order_amount,
+                         TO_CHAR(o.order_date, 'DD Mon YYYY') AS order_date_fmt,
+                         cs.slot_day, TO_CHAR(cs.slot_date, 'DD Mon YYYY') AS slot_date_fmt, cs.slot_time,
+                         p.product_name, p.product_image, op.quantity, op.price_at_purchase
+                  FROM (
+                      SELECT order_id, user_id, order_status, order_amount, order_date, collection_slot_id
+                      FROM orders WHERE user_id = :user_id
+                      ORDER BY order_date DESC FETCH FIRST 5 ROWS ONLY
+                  ) o
+                  JOIN order_product op ON o.order_id = op.order_id
+                  JOIN product p ON op.product_id = p.product_id
+                  LEFT JOIN collection_slot cs ON o.collection_slot_id = cs.collection_slot_id
+                  ORDER BY o.order_date DESC, o.order_id DESC";
+        $so = oci_parse($conn, $sql_o);
+        oci_bind_by_name($so, ':user_id', $uid_val);
+        oci_execute($so);
+        while ($r = oci_fetch_assoc($so)) {
+            $oid = (int)$r['ORDER_ID'];
+            if (!isset($recentOrders[$oid])) {
+                $recentOrders[$oid] = [
+                    'order_id'  => $oid,
+                    'status'    => $r['ORDER_STATUS'] ?? 'Pending',
+                    'amount'    => $r['ORDER_AMOUNT'] ?? 0,
+                    'date'      => $r['ORDER_DATE_FMT'] ?? '',
+                    'slot_day'  => $r['SLOT_DAY'] ?? '',
+                    'slot_date' => $r['SLOT_DATE_FMT'] ?? '',
+                    'slot_time' => $r['SLOT_TIME'] ?? '',
+                    'products'  => [],
+                ];
+            }
+            $recentOrders[$oid]['products'][] = [
+                'name'  => $r['PRODUCT_NAME']       ?? '',
+                'image' => $r['PRODUCT_IMAGE']      ?? '',
+                'qty'   => (int)($r['QUANTITY']     ?? 1),
+                'price' => (float)($r['PRICE_AT_PURCHASE'] ?? 0),
+            ];
+        }
+        oci_free_statement($so);
+
+        // Total order count for badge
+        $sc = oci_parse($conn, "SELECT COUNT(*) AS cnt FROM orders WHERE user_id = :user_id");
+        oci_bind_by_name($sc, ':user_id', $uid_val);
+        oci_execute($sc);
+        $rc = oci_fetch_assoc($sc);
+        $orderCount = (int)($rc['CNT'] ?? 0);
+        oci_free_statement($sc);
+
+        oci_close($conn);
+    }
+}
+$fullName = trim($dbUser['firstname'] . ' ' . $dbUser['lastname']);
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -21,8 +101,8 @@
         <div class="profile-container" style="max-width: 1440px; margin: 0 auto;">
             
             <header class="profile-main-header">
-                <h1 class="welcome-text" id="profile-welcome">Welcome, Anoushka</h1>
-                <p class="cur-date" id="profile-date">Tue, 07 June 2026</p>
+                <h1 class="welcome-text" id="profile-welcome">Welcome, <?= htmlspecialchars($dbUser['firstname'] ?: 'User') ?></h1>
+                <p class="cur-date" id="profile-date"></p>
             </header>
 
             <div class="profile-grid">
@@ -43,8 +123,8 @@
                             </div>
                             
                             <div class="user-info-text">
-                                <h2 id="profile-name">Anoushka karki</h2>
-                                <p id="profile-email">anoushka@gmail.com</p>
+                                <h2 id="profile-name"><?= htmlspecialchars($fullName) ?></h2>
+                                <p id="profile-email"><?= htmlspecialchars($dbUser['email']) ?></p>
                             </div>
 
                             <button class="btn-edit-profile-blue" id="profile-edit-btn">Edit</button>
@@ -54,13 +134,13 @@
                             
                             <div class="form-group">
                                 <label>Full Name</label>
-                                <input type="text" class="input-grey" id="profile-full-name" value="Anoushka Karki" readonly />
+                                <input type="text" class="input-grey" id="profile-full-name" value="<?= htmlspecialchars($fullName) ?>" readonly />
                             </div>
 
                             <div class="form-group">
                                 <label>Contact Number</label>
                                 <div class="input-with-icon">
-                                    <input type="text" class="input-grey" id="profile-phone" value="9867543378" readonly />
+                                    <input type="text" class="input-grey" id="profile-phone" value="<?= htmlspecialchars($dbUser['contact_no']) ?>" readonly />
                                     <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                                 </div>
                             </div>
@@ -68,7 +148,7 @@
                             <div class="form-group">
                                 <label>Email Address</label>
                                 <div class="input-with-icon">
-                                    <input type="text" class="input-grey" id="profile-email-input" value="anoushka@gmail.com" readonly />
+                                    <input type="text" class="input-grey" id="profile-email-input" value="<?= htmlspecialchars($dbUser['email']) ?>" readonly />
                                     <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                                 </div>
                             </div>
@@ -91,11 +171,12 @@
                                     </svg>
                                 </div>
                                 <div class="email-details">
-                                    <p class="email-val" id="profile-email-secondary">anoushka@gmail.com</p>
+                                    <p class="email-val" id="profile-email-secondary"><?= htmlspecialchars($dbUser['email']) ?></p>
                                     <p class="email-time">1 month ago</p>
                                 </div>
                             </div>
 
+                            <div id="profile-alert" style="display:none;padding:12px 16px;border-radius:8px;font-size:14px;margin-bottom:12px;"></div>
                             <button class="btn-add-email" id="profile-save-btn" type="button">Save Changes</button>
                             
                         </div>
@@ -108,52 +189,66 @@
                     <!-- Recent Orders -->
                     <div class="profile-card recent-orders-card">
                         <h2 class="card-title">Recent Orders</h2>
-                        
+
                         <div class="order-list" id="profile-orders">
-                            <div class="order-item">
-                                <img src="/cleckbasket/assets/images/mango.png" alt="Mangoes" class="order-img" />
-                                <div class="order-info">
-                                    <h4 class="order-name">Fresh Mangoes</h4>
-                                    <p class="order-price">$10.99</p>
-                                    <div class="order-stars">★</div>
+                        <?php if (empty($recentOrders)): ?>
+                            <p class="order-empty">No recent orders yet.</p>
+                        <?php else: ?>
+                            <?php foreach ($recentOrders as $ord): ?>
+                            <div class="order-group" style="border:1px solid #f0f0f0;border-radius:10px;margin-bottom:16px;overflow:hidden;">
+                                <!-- Order header -->
+                                <div style="background:#f8f9fa;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+                                    <div style="font-size:13px;color:#555;">
+                                        <strong style="color:#222;">Order #<?= (int)$ord['order_id'] ?></strong>
+                                        &nbsp;·&nbsp; <?= htmlspecialchars($ord['date']) ?>
+                                    </div>
+                                    <?php
+                                    $statusColors = [
+                                        'Pending'   => ['#fff8e1','#f57f17'],
+                                        'Confirmed' => ['#e3f2fd','#1565c0'],
+                                        'Ready'     => ['#e8f5e9','#2e7d32'],
+                                        'Collected' => ['#ede7f6','#4527a0'],
+                                        'Cancelled' => ['#ffebee','#c62828'],
+                                    ];
+                                    $st   = $ord['status'] ?? 'Pending';
+                                    $scol = $statusColors[$st] ?? ['#f5f5f5','#555'];
+                                    ?>
+                                    <span style="background:<?= $scol[0] ?>;color:<?= $scol[1] ?>;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">
+                                        <?= htmlspecialchars($st) ?>
+                                    </span>
+                                </div>
+                                <!-- Collection slot -->
+                                <?php if ($ord['slot_day'] || $ord['slot_date']): ?>
+                                <div style="padding:8px 14px;background:#fffde7;font-size:12px;color:#795548;border-bottom:1px solid #f0f0f0;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                    Collection: <?= htmlspecialchars($ord['slot_day']) ?>
+                                    <?php if ($ord['slot_date']): ?>, <?= htmlspecialchars($ord['slot_date']) ?><?php endif; ?>
+                                    <?php if ($ord['slot_time']): ?> &nbsp;·&nbsp; <?= htmlspecialchars($ord['slot_time']) ?><?php endif; ?>
+                                </div>
+                                <?php endif; ?>
+                                <!-- Products -->
+                                <div style="padding:10px 14px;">
+                                    <?php foreach ($ord['products'] as $prod): ?>
+                                    <div class="order-item" style="border-bottom:1px solid #f5f5f5;padding-bottom:10px;margin-bottom:10px;">
+                                        <?php
+                                        $imgSrc = $prod['image']
+                                            ? '/cleckbasket/assets/images/' . htmlspecialchars(basename($prod['image']))
+                                            : '/cleckbasket/assets/images/logo.png';
+                                        ?>
+                                        <img src="<?= $imgSrc ?>" alt="<?= htmlspecialchars($prod['name']) ?>" class="order-img" onerror="this.src='/cleckbasket/assets/images/logo.png'" />
+                                        <div class="order-info">
+                                            <h4 class="order-name"><?= htmlspecialchars($prod['name']) ?></h4>
+                                            <p class="order-price">£<?= number_format($prod['price'], 2) ?> &times; <?= (int)$prod['qty'] ?></p>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                    <div style="text-align:right;font-size:13px;font-weight:600;color:#333;padding-top:2px;">
+                                        Total: £<?= number_format($ord['amount'], 2) ?>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <div class="order-item">
-                                <img src="/cleckbasket/assets/images/banana.png" alt="Bananas" class="order-img" />
-                                <div class="order-info">
-                                    <h4 class="order-name">Yellow Bananas</h4>
-                                    <p class="order-price">$8.50</p>
-                                    <div class="order-stars">★</div>
-                                </div>
-                            </div>
-
-                            <div class="order-item">
-                                <img src="/cleckbasket/assets/images/watermelon.png" alt="Watermelons" class="order-img" />
-                                <div class="order-info">
-                                    <h4 class="order-name">Watermelons</h4>
-                                    <p class="order-price">$20.5</p>
-                                    <div class="order-stars">★</div>
-                                </div>
-                            </div>
-
-                            <div class="order-item">
-                                <img src="/cleckbasket/assets/images/banana.png" alt="Bananas" class="order-img" />
-                                <div class="order-info">
-                                    <h4 class="order-name">Yellow Bananas</h4>
-                                    <p class="order-price">$8.50</p>
-                                    <div class="order-stars">★</div>
-                                </div>
-                            </div>
-                            
-                            <div class="order-item">
-                                <img src="/cleckbasket/assets/images/mango.png" alt="Mangoes" class="order-img" />
-                                <div class="order-info">
-                                    <h4 class="order-name">Fresh Mangoes</h4>
-                                    <p class="order-price">$10.99</p>
-                                    <div class="order-stars">★</div>
-                                </div>
-                            </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                         </div>
                     </div>
 
@@ -170,7 +265,7 @@
                                     </svg>
                                     <span>Recent Orders</span>
                                 </div>
-                                <span class="badge-green" id="badge-orders">5</span>
+                                <span class="badge-green" id="badge-orders"><?= $orderCount ?></span>
                             </li>
                             <li>
                                 <div class="activity-left">
@@ -218,29 +313,67 @@
                 return;
             }
 
-            const profile = loadProfile();
-            hydrateProfile(profile);
-            hydrateOrders();
-            hydrateBadges();
             hydrateDate();
+            hydrateBadges();
             setEditingState(false);
 
             const editBtn = document.getElementById('profile-edit-btn');
             const saveBtn = document.getElementById('profile-save-btn');
+            const alertEl = document.getElementById('profile-alert');
 
             if (editBtn) {
                 editBtn.addEventListener('click', () => {
                     const isEditing = editBtn.dataset.editing === 'true';
                     setEditingState(!isEditing);
+                    if (alertEl) alertEl.style.display = 'none';
                 });
             }
 
             if (saveBtn) {
-                saveBtn.addEventListener('click', () => {
-                    const updated = readProfileInputs();
-                    saveProfile(updated);
-                    hydrateProfile(updated);
-                    setEditingState(false);
+                saveBtn.addEventListener('click', async () => {
+                    const payload = {
+                        name:  getInputValue('profile-full-name'),
+                        email: getInputValue('profile-email-input'),
+                        phone: getInputValue('profile-phone'),
+                    };
+
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = 'Saving…';
+
+                    try {
+                        const res  = await fetch('/cleckbasket/backend/update_profile.php', {
+                            method:  'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body:    JSON.stringify(payload),
+                        });
+                        const json = await res.json();
+
+                        if (alertEl) {
+                            alertEl.textContent   = json.message;
+                            alertEl.style.display = 'block';
+                            alertEl.style.background = json.success ? '#e8f5e9' : '#ffebee';
+                            alertEl.style.color      = json.success ? '#2e7d32' : '#c62828';
+                        }
+
+                        if (json.success) {
+                            // Update displayed name/email without page reload
+                            setText('profile-name', payload.name);
+                            setText('profile-welcome', 'Welcome, ' + payload.name);
+                            setText('profile-email', payload.email);
+                            setText('profile-email-secondary', payload.email);
+                            setEditingState(false);
+                        }
+                    } catch (err) {
+                        if (alertEl) {
+                            alertEl.textContent      = 'Network error. Please try again.';
+                            alertEl.style.display    = 'block';
+                            alertEl.style.background = '#ffebee';
+                            alertEl.style.color      = '#c62828';
+                        }
+                    } finally {
+                        saveBtn.disabled    = false;
+                        saveBtn.textContent = 'Save Changes';
+                    }
                 });
             }
 
@@ -248,10 +381,7 @@
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', () => {
                     localStorage.removeItem('is_login');
-                    // Optional: remove other user data
-                    // localStorage.removeItem('user_name');
-                    // localStorage.removeItem('user_email');
-                    window.location.href = '/cleckbasket/includes/pages/login.php';
+                    window.location.href = '/cleckbasket/backend/logout.php';
                 });
             }
         });
@@ -262,95 +392,32 @@
 
         function hydrateDate() {
             const dateEl = document.getElementById('profile-date');
-            if (!dateEl) {
-                return;
-            }
-
+            if (!dateEl) return;
             const now = new Date();
-            const formatted = now.toLocaleDateString('en-GB', {
-                weekday: 'short',
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric'
-            });
-            dateEl.textContent = formatted;
-        }
-
-        function loadProfile() {
-            const stored = localStorage.getItem('profile_data');
-            if (stored) {
-                try {
-                    return applyFallbackProfile(JSON.parse(stored));
-                } catch (error) {
-                    return buildDefaultProfile();
-                }
-            }
-            return buildDefaultProfile();
-        }
-
-        function buildDefaultProfile() {
-            const storedName = localStorage.getItem('user_name') || '';
-            const storedEmail = localStorage.getItem('user_email') || '';
-            return applyFallbackProfile({
-                name: storedName,
-                email: storedEmail,
-                phone: '',
-                address: ''
+            dateEl.textContent = now.toLocaleDateString('en-GB', {
+                weekday: 'short', day: '2-digit', month: 'long', year: 'numeric'
             });
         }
 
-        function applyFallbackProfile(profile) {
-            return {
-                name: profile.name || localStorage.getItem('user_name') || '',
-                email: profile.email || localStorage.getItem('user_email') || '',
-                phone: profile.phone || '',
-                address: profile.address || ''
-            };
-        }
-
-        function saveProfile(profile) {
-            localStorage.setItem('profile_data', JSON.stringify(profile));
-            if (profile.address) {
-                localStorage.setItem('delivery_address', profile.address);
-            }
-        }
-
-        function hydrateProfile(profile) {
-            setText('profile-welcome', profile.name ? `Welcome, ${profile.name}` : 'Welcome');
-            setText('profile-name', profile.name || '');
-            setText('profile-email', profile.email || '');
-            setText('profile-email-secondary', profile.email || '');
-
-            setInputValue('profile-full-name', profile.name);
-            setInputValue('profile-email-input', profile.email);
-            setInputValue('profile-phone', profile.phone);
-            setInputValue('profile-address', profile.address || localStorage.getItem('delivery_address') || '');
-        }
-
-        function readProfileInputs() {
-            return {
-                name: getInputValue('profile-full-name'),
-                email: getInputValue('profile-email-input'),
-                phone: getInputValue('profile-phone'),
-                address: getInputValue('profile-address')
-            };
+        function hydrateBadges() {
+            const cart     = JSON.parse(localStorage.getItem('cart')     || '[]');
+            const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+            setText('badge-cart',     Array.isArray(cart)     ? cart.reduce((s, i) => s + (i.quantity || 0), 0) : 0);
+            setText('badge-wishlist', Array.isArray(wishlist) ? wishlist.length : 0);
         }
 
         function setEditingState(isEditing) {
             const editBtn = document.getElementById('profile-edit-btn');
             const saveBtn = document.getElementById('profile-save-btn');
-
             if (editBtn) {
                 editBtn.dataset.editing = isEditing ? 'true' : 'false';
-                editBtn.textContent = isEditing ? 'Cancel' : 'Edit';
+                editBtn.textContent     = isEditing ? 'Cancel' : 'Edit';
             }
-
             if (saveBtn) {
-                saveBtn.disabled = !isEditing;
+                saveBtn.disabled      = !isEditing;
                 saveBtn.style.opacity = isEditing ? '1' : '0.6';
             }
-
-            ['profile-full-name', 'profile-email-input', 'profile-phone', 'profile-address'].forEach((id) => {
+            ['profile-full-name', 'profile-email-input', 'profile-phone', 'profile-address'].forEach(id => {
                 const input = document.getElementById(id);
                 if (input) {
                     input.readOnly = !isEditing;
@@ -359,66 +426,9 @@
             });
         }
 
-        function hydrateOrders() {
-            const list = document.getElementById('profile-orders');
-            if (!list) {
-                return;
-            }
-
-            const stored = localStorage.getItem('recent_orders');
-            let orders = [];
-
-            if (stored) {
-                try {
-                    orders = JSON.parse(stored);
-                } catch (error) {
-                    orders = [];
-                }
-            }
-
-            if (!Array.isArray(orders) || orders.length === 0) {
-                list.innerHTML = '<p class="order-empty">No recent orders yet.</p>';
-                return;
-            }
-
-            list.innerHTML = '';
-            orders.slice(0, 5).forEach((order) => {
-                const item = document.createElement('div');
-                item.className = 'order-item';
-                item.innerHTML = `
-                    <img src="${order.image || '/cleckbasket/assets/images/banana.png'}" alt="${order.name || 'Order'}" class="order-img" />
-                    <div class="order-info">
-                        <h4 class="order-name">${order.name || 'Order item'}</h4>
-                        <p class="order-price">£${Number(order.price || 0).toFixed(2)}</p>
-                        <div class="order-stars">★</div>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function hydrateBadges() {
-            const orders = JSON.parse(localStorage.getItem('recent_orders') || '[]');
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-
-            setText('badge-orders', Array.isArray(orders) ? orders.length : 0);
-            setText('badge-cart', Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.quantity || 0), 0) : 0);
-            setText('badge-wishlist', Array.isArray(wishlist) ? wishlist.length : 0);
-        }
-
         function setText(id, value) {
             const el = document.getElementById(id);
-            if (el) {
-                el.textContent = value;
-            }
-        }
-
-        function setInputValue(id, value) {
-            const input = document.getElementById(id);
-            if (input) {
-                input.value = value || '';
-            }
+            if (el) el.textContent = value;
         }
 
         function getInputValue(id) {

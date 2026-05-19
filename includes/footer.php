@@ -12,11 +12,11 @@
         <nav class="footer-center">
             <a href="/cleckbasket/includes/pages/privacypolicy.html">Privacy Policy</a>
             <a href="/cleckbasket/includes/pages/termsofservice.html">Terms of Service</a>
-            <a href="/cleckbasket/includes/pages/shippinginformation.html">Shipping Info</a>
+            <a href="/cleckbasket/includes/pages/shippinginformation.html">Pick Up Info</a>
         </nav>
 
         <div class="footer-right">
-            <p>&copy; 2024 CleckBasket Organic Curators</p>
+            <p>&copy; 2026 CleckBasket Organic Curators</p>
         </div>
 
     </div>

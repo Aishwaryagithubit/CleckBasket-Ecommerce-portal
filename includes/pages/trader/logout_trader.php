@@ -1,6 +1,3 @@
 <?php
-session_start();
-session_destroy();
-header('Location: traderdashboard.php');
-exit();
-?>
+header('Location: /cleckbasket/backend/logout.php');
+exit;

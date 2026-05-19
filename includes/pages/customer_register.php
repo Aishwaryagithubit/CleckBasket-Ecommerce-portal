@@ -1,5 +1,101 @@
 <?php
-// customer_register.php
+ob_start();
+error_reporting(0);
+require_once '../../backend/connect.php';
+require_once '../../backend/send_otp_email.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    header('Content-Type: application/json');
+
+    $name = trim($_POST['text'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
+
+    // Validate input
+    if (!$name || !$phone || !$email || !$password || !$confirm_password) {
+        echo json_encode(['success' => false, 'message' => 'All fields are required']);
+        exit;
+    }
+
+    if ($password !== $confirm_password) {
+        echo json_encode(['success' => false, 'message' => 'Passwords do not match']);
+        exit;
+    }
+
+    if (strlen($password) < 6) {
+        echo json_encode(['success' => false, 'message' => 'Password must be at least 6 characters']);
+        exit;
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid email address']);
+        exit;
+    }
+
+    $conn = getDBConnection();
+    if (!$conn) {
+        echo json_encode(['success' => false, 'message' => 'Database connection failed']);
+        exit;
+    }
+
+    // Check if email already exists
+    $check_sql = "SELECT COUNT(*) as cnt FROM users WHERE email = :email";
+    $stmt = oci_parse($conn, $check_sql);
+    oci_bind_by_name($stmt, ':email', $email);
+    oci_execute($stmt);
+    $row = oci_fetch_assoc($stmt);
+
+    if ($row['CNT'] > 0) {
+        oci_free_statement($stmt);
+        oci_close($conn);
+        echo json_encode(['success' => false, 'message' => 'Email already registered']);
+        exit;
+    }
+    oci_free_statement($stmt);
+
+    // Split name into firstname and lastname
+    $name_parts = explode(' ', $name, 2);
+    $firstname = $name_parts[0];
+    $lastname = isset($name_parts[1]) ? $name_parts[1] : '';
+
+    // Hash password
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+
+    // Generate verification code
+    $verification_code = strtoupper(bin2hex(random_bytes(3)));
+
+    // Insert new user
+    $insert_sql = "INSERT INTO users (firstname, lastname, email, contact_no, password_hash, verification_code, role, status)
+                   VALUES (:firstname, :lastname, :email, :contact_no, :password_hash, :verification_code, 'CUSTOMER', 'ACTIVE')";
+
+    $stmt = oci_parse($conn, $insert_sql);
+    oci_bind_by_name($stmt, ':firstname', $firstname);
+    oci_bind_by_name($stmt, ':lastname', $lastname);
+    oci_bind_by_name($stmt, ':email', $email);
+    oci_bind_by_name($stmt, ':contact_no', $phone);
+    oci_bind_by_name($stmt, ':password_hash', $password_hash);
+    oci_bind_by_name($stmt, ':verification_code', $verification_code);
+
+    if (oci_execute($stmt)) {
+        oci_commit($conn);
+        oci_free_statement($stmt);
+        oci_close($conn);
+
+        // Send OTP email
+        sendOtpEmail($email, $firstname, $verification_code);
+
+        echo json_encode(['success' => true, 'message' => 'Registration successful', 'email' => $email]);
+        exit;
+    } else {
+        $error = oci_error($stmt);
+        oci_free_statement($stmt);
+        oci_close($conn);
+        echo json_encode(['success' => false, 'message' => 'Registration failed: ' . $error['message']]);
+        exit;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,7 +130,7 @@
             <div class="registration-container">
                 
 
-                <form action="/cleckbasket/includes/pages/customer_register.php" method="POST" class="register-form">
+                <form class="register-form" id="registerForm">
                     <div class="form-group">
                         <label for="text">Name</label>
                         <input type="text" id="text" name="text" placeholder="Enter your name" required>
@@ -77,8 +173,8 @@
     </div>
 
     <script>
-        document.querySelector('.register-form').addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent standard form submission
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
 
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
@@ -89,11 +185,26 @@
                 return;
             }
 
-            // Save user email to localStorage (used later in profile or OTP)
-            localStorage.setItem('user_email', email);
+            const formData = new FormData(this);
 
-            // Simulate successful registration process and redirect to OTP Verification page
-            window.location.href = '/cleckbasket/includes/pages/otp_verification.php';
+            fetch('/cleckbasket/includes/pages/customer_register.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    localStorage.setItem('user_email', data.email);
+                    alert('Registration successful! Please verify your account.');
+                    window.location.href = '/cleckbasket/includes/pages/otp_verification.php';
+                } else {
+                    alert('Registration failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during registration');
+            });
         });
     </script>
 
@@ -106,7 +217,7 @@
             <nav class="footer-center">
                 <a href="#">PRIVACY POLICY</a>
                 <a href="#">TERMS OF SERVICE</a>
-                <a href="#">SHIPPING INFO</a>
+                <a href="/cleckbasket/includes/pages/shippinginformation.html">PICK UP INFO</a>
                 <a href="#">WHOLESALE</a>
             </nav>
 

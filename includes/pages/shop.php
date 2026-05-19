@@ -3,7 +3,11 @@
  * shop.php — Unified Shop/Category Page
  */
 
+$per_page = 9;
+$page     = max(1, (int)($_GET['page'] ?? 1));
+
 $categories = [
+    'all'         => __DIR__ . '/all.php',
     'butcher'     => __DIR__ . '/butcher.php',
     'bakery'      => __DIR__ . '/bakery.php',
     'fishmonger'  => __DIR__ . '/fishmonger.php',
@@ -11,12 +15,59 @@ $categories = [
     'delicatessen' => __DIR__ . '/delicatessen.php',
 ];
 
-$cat = isset($_GET['cat']) ? strtolower(trim($_GET['cat'])) : 'butcher';
+$cat = isset($_GET['cat']) ? strtolower(trim($_GET['cat'])) : 'all';
 if (!array_key_exists($cat, $categories)) {
-    $cat = 'butcher';
+    $cat = 'all';
 }
 
 include $categories[$cat];
+// $products, $category_name, $hero_title, $hero_subtitle now set
+
+// Always use product_ images from assets/images as hero slides
+$_img_dir    = realpath(__DIR__ . '/../../assets/images');
+$_img_files  = glob($_img_dir . DIRECTORY_SEPARATOR . 'product_*');
+$hero_images = [];
+if (!empty($_img_files)) {
+    foreach ($_img_files as $_path) {
+        $hero_images[] = [
+            'src' => '/cleckbasket/assets/images/' . basename($_path),
+            'alt' => 'Product',
+        ];
+    }
+}
+
+// Pagination
+$total_products = count($products);
+$total_pages    = max(1, (int)ceil($total_products / $per_page));
+$page           = min($page, $total_pages);
+$paged_products = array_slice($products, ($page - 1) * $per_page, $per_page);
+
+// Dynamic New Products — 3 newest from DB
+require_once __DIR__ . '/../../backend/connect.php';
+$new_products = [];
+$conn_np = getDBConnection();
+if ($conn_np) {
+    $sql_np = "SELECT p.product_id, p.product_name, p.price, p.product_image
+               FROM product p
+               ORDER BY p.product_id DESC
+               FETCH FIRST 3 ROWS ONLY";
+    $stmt_np = oci_parse($conn_np, $sql_np);
+    oci_execute($stmt_np);
+    while ($row = oci_fetch_assoc($stmt_np)) {
+        $new_products[] = [
+            'id'    => (int)$row['PRODUCT_ID'],
+            'name'  => $row['PRODUCT_NAME'],
+            'price' => number_format((float)$row['PRICE'], 2),
+            'image' => '/cleckbasket/assets/images/' . $row['PRODUCT_IMAGE'],
+        ];
+    }
+    oci_free_statement($stmt_np);
+    oci_close($conn_np);
+}
+
+function shop_page_url($cat, $pg) {
+    return '/cleckbasket/includes/pages/shop.php?cat=' . urlencode($cat) . '&page=' . $pg;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,11 +82,6 @@ include $categories[$cat];
         rel="stylesheet" />
     <link rel="stylesheet" href="/cleckbasket/assets/css/bakery.css" />
     <style>
-        /* Discount pricing styles */
-        .product-card-top {
-            position: relative;
-        }
-
         .discount-badge {
             position: absolute;
             top: 10px;
@@ -75,6 +121,72 @@ include $categories[$cat];
             font-weight: 700;
             color: #333;
         }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 48px;
+            flex-wrap: wrap;
+        }
+
+        .pagination a,
+        .pagination span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0 12px;
+            border-radius: 10px;
+            font-family: "DM Sans", sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1.5px solid #e0e0e0;
+            color: #380000;
+            background: #fff;
+            transition: background 0.18s, color 0.18s, border-color 0.18s;
+        }
+
+        .pagination a:hover {
+            background: #616834;
+            color: #fff;
+            border-color: #616834;
+        }
+
+        .pagination .current {
+            background: #616834;
+            color: #fff;
+            border-color: #616834;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            border-color: #f0f0f0;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .new-prod-item {
+            text-decoration: none;
+        }
+
+        /* Hero slider */
+        .hero-img-wrap {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .hero-img-wrap.slider-visible {
+            display: flex;
+            opacity: 1;
+        }
+        .hero-images {
+            position: relative;
+        }
     </style>
 </head>
 
@@ -90,11 +202,8 @@ include $categories[$cat];
 
             <div class="hero-images">
                 <button class="arrow-btn arrow-prev" aria-label="Previous">
-                    <svg viewBox="0 0 24 24">
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </button>
-
                 <?php foreach ($hero_images as $img): ?>
                     <div class="hero-img-wrap">
                         <img src="<?php echo htmlspecialchars($img['src']); ?>"
@@ -102,11 +211,8 @@ include $categories[$cat];
                             onerror="this.src='https://placehold.co/350x350/F6F6F6/ccc?text=<?php echo urlencode($img['alt']); ?>'" />
                     </div>
                 <?php endforeach; ?>
-
                 <button class="arrow-btn arrow-next" aria-label="Next">
-                    <svg viewBox="0 0 24 24">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
+                    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </button>
             </div>
         </section>
@@ -121,6 +227,7 @@ include $categories[$cat];
                     <ul class="cat-list">
                         <?php
                         $cat_labels = [
+                            'all'         => ['All',          '/cleckbasket/assets/images/grocery2.png'],
                             'butcher'     => ['Butcher',      '/cleckbasket/assets/images/beefs.png'],
                             'greengrocer' => ['Green Grocer', '/cleckbasket/assets/images/greengrocers.png'],
                             'bakery'      => ['Bakery',       '/cleckbasket/assets/images/bakerys.png'],
@@ -141,27 +248,27 @@ include $categories[$cat];
                     </ul>
                 </div>
 
-                <!-- New Products -->
+                <!-- New Products (Dynamic) -->
                 <div class="widget-new-products">
                     <h3 class="widget-title-lg">New Products</h3>
                     <div class="new-prod-list">
-                        <a class="new-prod-item" href="/cleckbasket/includes/pages/product_detail.php">
-                            <img src="/cleckbasket/assets/images/cupcake.png" alt="Fruit Cupcakes" class="new-prod-img"
-                                onerror="this.src='https://placehold.co/70x70/ffe/f00?text=Cupcake'" />
-                            <div class="new-prod-info">
-                                <p class="new-prod-name">Fruit Cupcakes</p>
-                                <p class="new-prod-price">£3.50</p>
-                            </div>
-                        </a>
-                        <a class="new-prod-item" href="/cleckbasket/includes/pages/product_detail.php">
-                            <img src="/cleckbasket/assets/images/stripsteak.png" alt="NY Strip Steak"
-                                class="new-prod-img"
-                                onerror="this.src='https://placehold.co/70x70/fee/f00?text=Steak'" />
-                            <div class="new-prod-info">
-                                <p class="new-prod-name">NY Strip Steak</p>
-                                <p class="new-prod-price">£11.75</p>
-                            </div>
-                        </a>
+                        <?php if (empty($new_products)): ?>
+                            <p style="color:#888;font-size:14px;">No products yet.</p>
+                        <?php else: ?>
+                            <?php foreach ($new_products as $np): ?>
+                                <a class="new-prod-item"
+                                   href="/cleckbasket/includes/pages/product_detail.php?id=<?php echo $np['id']; ?>">
+                                    <img src="<?php echo htmlspecialchars($np['image']); ?>"
+                                         alt="<?php echo htmlspecialchars($np['name']); ?>"
+                                         class="new-prod-img"
+                                         onerror="this.src='https://placehold.co/70x70/f6f6f6/ccc?text=Img'" />
+                                    <div class="new-prod-info">
+                                        <p class="new-prod-name"><?php echo htmlspecialchars($np['name']); ?></p>
+                                        <p class="new-prod-price">£<?php echo $np['price']; ?></p>
+                                    </div>
+                                </a>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -171,17 +278,18 @@ include $categories[$cat];
             <div class="product-area">
                 <h2 class="section-main-title"><?php echo htmlspecialchars($category_name); ?> Products</h2>
 
+                <?php if (empty($paged_products)): ?>
+                    <p style="color:#888;padding:2rem;text-align:center;">No products found.</p>
+                <?php else: ?>
                 <div class="products-grid">
-                    <?php foreach ($products as $index => $product):
-                        $discount      = isset($product['discount']) ? (int)$product['discount'] : 0;
-                        $original      = $product['price'];
-                        $discounted    = $discount > 0
-                            ? round($original * (1 - $discount / 100), 2)
-                            : null;
-                        // Pass the final payable price into data-price for cart
-                        $cart_price    = $discounted ?? $original;
+                    <?php foreach ($paged_products as $index => $product):
+                        $discount   = isset($product['discount']) ? (int)$product['discount'] : 0;
+                        $original   = $product['price'];
+                        $discounted = $discount > 0 ? round($original * (1 - $discount / 100), 2) : null;
+                        $cart_price = $discounted ?? $original;
                     ?>
                         <div class="product-card"
+                            data-product-id="<?php echo isset($product['id']) ? (int)$product['id'] : 0; ?>"
                             data-name="<?php echo htmlspecialchars($product['name']); ?>"
                             data-price="<?php echo $cart_price; ?>"
                             data-image="<?php echo htmlspecialchars($product['image']); ?>"
@@ -191,7 +299,6 @@ include $categories[$cat];
                                 <?php if ($discount > 0): ?>
                                     <span class="discount-badge">-<?php echo $discount; ?>%</span>
                                 <?php endif; ?>
-
                                 <img src="<?php echo htmlspecialchars($product['image']); ?>"
                                     alt="<?php echo htmlspecialchars($product['name']); ?>"
                                     onerror="this.src='https://placehold.co/300x200/F6F6F6/ccc?text=<?php echo urlencode($product['name']); ?>'" />
@@ -200,7 +307,6 @@ include $categories[$cat];
                             <div class="product-card-bottom">
                                 <div>
                                     <h3 class="product-card-name"><?php echo htmlspecialchars($product['name']); ?></h3>
-
                                     <div class="price-block">
                                         <?php if ($discount > 0): ?>
                                             <span class="price-original">£<?php echo number_format($original, 2); ?></span>
@@ -210,10 +316,9 @@ include $categories[$cat];
                                         <?php endif; ?>
                                     </div>
                                 </div>
-
                                 <div class="product-card-actions">
-                                    <button class="btn-add-cart" data-id="<?php echo $index; ?>">Add to Cart</button>
-                                    <button class="btn-fav" aria-label="Add to wishlist" data-id="<?php echo $index; ?>">
+                                    <button class="btn-add-cart">Add to Cart</button>
+                                    <button class="btn-fav" aria-label="Add to wishlist">
                                         <svg viewBox="0 0 24 24">
                                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                         </svg>
@@ -223,6 +328,47 @@ include $categories[$cat];
                         </div>
                     <?php endforeach; ?>
                 </div>
+                <?php endif; ?>
+
+                <!-- Pagination -->
+                <?php if ($total_pages > 1): ?>
+                <nav class="pagination" aria-label="Product pages">
+                    <?php if ($page > 1): ?>
+                        <a href="<?php echo shop_page_url($cat, $page - 1); ?>">&laquo; Prev</a>
+                    <?php else: ?>
+                        <span class="disabled">&laquo; Prev</span>
+                    <?php endif; ?>
+
+                    <?php
+                    $range = 2;
+                    $start = max(1, $page - $range);
+                    $end   = min($total_pages, $page + $range);
+                    if ($start > 1): ?>
+                        <a href="<?php echo shop_page_url($cat, 1); ?>">1</a>
+                        <?php if ($start > 2): ?><span class="disabled">&hellip;</span><?php endif; ?>
+                    <?php endif; ?>
+
+                    <?php for ($p = $start; $p <= $end; $p++): ?>
+                        <?php if ($p === $page): ?>
+                            <span class="current"><?php echo $p; ?></span>
+                        <?php else: ?>
+                            <a href="<?php echo shop_page_url($cat, $p); ?>"><?php echo $p; ?></a>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+
+                    <?php if ($end < $total_pages): ?>
+                        <?php if ($end < $total_pages - 1): ?><span class="disabled">&hellip;</span><?php endif; ?>
+                        <a href="<?php echo shop_page_url($cat, $total_pages); ?>"><?php echo $total_pages; ?></a>
+                    <?php endif; ?>
+
+                    <?php if ($page < $total_pages): ?>
+                        <a href="<?php echo shop_page_url($cat, $page + 1); ?>">Next &raquo;</a>
+                    <?php else: ?>
+                        <span class="disabled">Next &raquo;</span>
+                    <?php endif; ?>
+                </nav>
+                <?php endif; ?>
+
             </div>
         </section>
 
@@ -237,12 +383,12 @@ include $categories[$cat];
                     e.stopPropagation();
                     var card = btn.closest('.product-card');
                     var product = {
+                        id: parseInt(card.dataset.productId) || 0,
                         name: card.dataset.name,
                         price: parseFloat(card.dataset.price),
                         image: card.dataset.image,
                         quantity: 1
                     };
-
                     var cart = JSON.parse(localStorage.getItem('cart') || '[]');
                     var existing = cart.find(function (item) { return item.name === product.name; });
                     if (existing) {
@@ -251,14 +397,12 @@ include $categories[$cat];
                         cart.push(product);
                     }
                     localStorage.setItem('cart', JSON.stringify(cart));
-
                     var badge = document.getElementById('cartCount');
                     if (badge) {
                         var total = cart.reduce(function (s, i) { return s + i.quantity; }, 0);
                         badge.textContent = total;
                         badge.style.display = total > 0 ? 'flex' : 'none';
                     }
-
                     btn.textContent = 'Added ✓';
                     btn.style.background = '#D5E8CD';
                     setTimeout(function () {
@@ -274,7 +418,6 @@ include $categories[$cat];
                     e.stopPropagation();
                     var card = btn.closest('.product-card');
                     var name = card.dataset.name;
-
                     var wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
                     var idx = wishlist.indexOf(name);
                     if (idx > -1) {
@@ -301,33 +444,44 @@ include $categories[$cat];
             document.querySelectorAll('.product-card').forEach(function (card) {
                 card.style.cursor = 'pointer';
                 card.addEventListener('click', function () {
-                    sessionStorage.setItem('selected_product', JSON.stringify({
-                        name: card.dataset.name,
-                        price: '£' + parseFloat(card.dataset.price).toFixed(2),
-                        image: card.dataset.image,
-                        desc: card.dataset.desc
-                    }));
-                    window.location.href = '/cleckbasket/includes/pages/product_detail.php';
+                    var pid = card.dataset.productId;
+                    if (pid && parseInt(pid) > 0) {
+                        window.location.href = '/cleckbasket/includes/pages/product_detail.php?id=' + pid;
+                    }
                 });
             });
 
-            // --- HERO IMAGE CAROUSEL ---
-            var slides = document.querySelectorAll('.hero-img-wrap');
-            var currentSlide = 0;
-            function showSlide(n) {
-                if (slides.length <= 3) return;
-                slides.forEach(function (s, i) {
-                    s.style.display = (i >= n && i < n + 3) ? 'flex' : 'none';
-                });
-            }
-            document.querySelector('.arrow-prev')?.addEventListener('click', function () {
-                currentSlide = Math.max(0, currentSlide - 1);
-                showSlide(currentSlide);
-            });
-            document.querySelector('.arrow-next')?.addEventListener('click', function () {
-                currentSlide = Math.min(slides.length - 3, currentSlide + 1);
-                showSlide(currentSlide);
-            });
+            // --- HERO SLIDER ---
+            (function () {
+                var slides   = Array.from(document.querySelectorAll('.hero-img-wrap'));
+                var prevBtn  = document.querySelector('.arrow-prev');
+                var nextBtn  = document.querySelector('.arrow-next');
+                if (!slides.length) return;
+
+                var VISIBLE  = Math.min(3, slides.length);
+                var current  = 0;
+                var timer    = null;
+
+                function show(idx) {
+                    slides.forEach(function (s) { s.classList.remove('slider-visible'); });
+                    for (var i = 0; i < VISIBLE; i++) {
+                        slides[(idx + i) % slides.length].classList.add('slider-visible');
+                    }
+                    current = idx;
+                }
+
+                function goNext() { show((current + 1) % slides.length); }
+                function goPrev() { show((current - 1 + slides.length) % slides.length); }
+
+                function startAuto() { timer = setInterval(goNext, 3000); }
+                function resetAuto() { clearInterval(timer); startAuto(); }
+
+                if (nextBtn) nextBtn.addEventListener('click', function () { goNext(); resetAuto(); });
+                if (prevBtn) prevBtn.addEventListener('click', function () { goPrev(); resetAuto(); });
+
+                show(0);
+                startAuto();
+            })();
 
             // --- CART BADGE ON LOAD ---
             var cart = JSON.parse(localStorage.getItem('cart') || '[]');

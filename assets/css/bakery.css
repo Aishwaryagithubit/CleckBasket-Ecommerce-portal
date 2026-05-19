@@ -154,6 +154,13 @@ body {
   fill: none;
 }
 
+.cat-icon-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .widget-new-products {
   border: 1.28px solid #e3dddd;
   border-radius: 21.9px;
@@ -252,9 +259,9 @@ body {
 }
 
 .product-card-top img {
-  max-width: 80%;
-  max-height: 80%;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .product-card-bottom {
@@ -412,9 +419,14 @@ body {
   }
 
   .cat-icon-img {
-    width: 22px;
-    height: 22px;
+    max-width: 22px ;
+    
+    max-height: 22px;
     object-fit: contain;
+  }
+
+  .cat-list img {
+    max-width: 22px;
   }
 
   .section-main-title {

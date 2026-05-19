@@ -1,3 +1,12 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) session_start();
+$cartUserName = '';
+if (!empty($_SESSION['full_name'])) {
+    $cartUserName = $_SESSION['full_name'];
+} elseif (!empty($_SESSION['user_name'])) {
+    $cartUserName = $_SESSION['user_name'];
+}
+?>
 <?php include('../header.php'); ?>
 
 <!DOCTYPE html>
@@ -529,7 +538,7 @@
           </div>
 
           <div class="cart-actions-bottom">
-            <button class="btn-shop-further" onclick="window.location.href='shop.php';">Shop Further</button>
+            <button class="btn-shop-further" onclick="window.location.href='/cleckbasket/includes/pages/shop.php';">Shop Further</button>
           </div>
         </div>
 
@@ -577,10 +586,10 @@
           </div>
           <div class="address-content"
             style="background: #fdfdfd; border: 1px solid var(--border); padding: 15px; border-radius: var(--radius-md); color: var(--text-mid); font-size: 0.95rem; line-height: 1.6;">
-            <strong>Anoushka Karki</strong><br>
-            45 Green Street<br>
-            Cleckheaton, BD12 0LP<br>
-            West Yorkshire
+            <?php if ($cartUserName): ?>
+                <strong><?= htmlspecialchars($cartUserName) ?></strong><br>
+            <?php endif; ?>
+            Collection only — Cleckheaton Market, BD19 3RH
           </div>
         </div>
 
@@ -794,110 +803,6 @@
     }
   </script>
 
-  <script>
-    const DELIVERY_FEE = 0.00;
-    const COUPON_CODES = { 'SAVE10': 10 };
-
-    // Sample cart products from the reference image
-    let cartItems = [
-      { id: 1, name: 'Whole Chicken', price: 7.20, qty: 1, img: '/cleckbasket/assets/images/wholechicken.png' },
-      { id: 2, name: 'Blueberry Cake', price: 18.80, qty: 2, img: '/cleckbasket/assets/images/cake.png' }, // Provide fallback images as appropriate
-      { id: 3, name: 'Rainbow Trout', price: 9.00, qty: 4, img: '/cleckbasket/assets/images/fishmongers.png' },
-      { id: 4, name: 'Bell Peppers', price: 0.50, qty: 5, img: '/cleckbasket/assets/images/greengrocers.png' }
-    ];
-
-    let appliedDiscount = 0;
-
-    function formatPriceSubscript(val) {
-      // Returns a formatted price with smaller decimal portion (like the mockup)
-      const fixed = val.toFixed(2);
-      const parts = fixed.split('.');
-      return '£' + parts[0] + '<span style="font-size:0.7em;">.' + parts[1] + '</span>';
-    }
-
-    function formatPriceTotal(val) {
-      return '$' + val.toFixed(2);
-    }
-
-    function renderCart() {
-      const list = document.getElementById('cart-items-list');
-      list.innerHTML = '';
-
-      cartItems.forEach(item => {
-        s
-        const sub = item.price * item.qty;
-        const row = document.createElement('div');
-        row.className = 'cart-item';
-        row.innerHTML = \`
-          <div class="cart-item__product">
-            <img class="cart-item__img" src="\${item.img}" alt="\${item.name}" onerror="this.src='https://cdn-icons-png.flaticon.com/128/3143/3143645.png'">
-            <span class="cart-item__name">\${item.name}</span>
-          </div>
-          <div class="cart-item__price">\${formatPriceSubscript(item.price)}</div>
-          
-          <div class="qty-selector">
-             <button class="qty-btn" data-id="\${item.id}" data-action="dec">−</button>
-             <span class="qty-value">\${item.qty}</span>
-             <button class="qty-btn" data-id="\${item.id}" data-action="inc">+</button>
-          </div>
-
-          <div class="cart-item__subtotal">\${formatPriceSubscript(sub)}</div>
-        \`;
-        list.appendChild(row);
-      });
-      
-      updateSummary();
-    }
-
-    function updateSummary() {
-      const subtotal = cartItems.reduce((acc, i) => acc + (i.price * i.qty), 0);
-      
-      const delivery = cartItems.length > 0 ? DELIVERY_FEE : 0;
-      const total = subtotal + delivery - appliedDiscount;
-      
-      document.getElementById('summary-subtotal').textContent = formatPriceTotal(subtotal);
-      document.getElementById('summary-delivery').textContent = formatPriceTotal(delivery);
-      document.getElementById('summary-grand-total').textContent = formatPriceTotal(total);
-    }
-
-    document.getElementById('cart-items-list').addEventListener('click', (e) => {
-      const btn = e.target.closest('.qty-btn');
-      if (!btn) return;
-      const id = parseInt(btn.dataset.id);
-      const action = btn.dataset.action;
-      const item = cartItems.find(i => i.id === id);
-      if (!item) return;
-      
-      if (action === 'inc') {
-        item.qty++;
-      } else if (action === 'dec') {
-        if (item.qty > 1) {
-          item.qty--;
-        } else {
-          cartItems = cartItems.filter(i => i.id !== id);
-        }
-      }
-      renderCart();
-    });
-
-    // Make Pickup Time pills interactive
-    document.querySelectorAll('.pickup-days .pickup-pill').forEach(pill => {
-      pill.addEventListener('click', () => {
-        document.querySelectorAll('.pickup-days .pickup-pill').forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-      });
-    });
-
-    document.querySelectorAll('.pickup-times .pickup-pill').forEach(pill => {
-      pill.addEventListener('click', () => {
-        document.querySelectorAll('.pickup-times .pickup-pill').forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-      });
-    });
-
-    renderCart();
-
-  </script>
 
 </body>
 

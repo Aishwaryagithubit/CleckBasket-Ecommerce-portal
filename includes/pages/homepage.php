@@ -1,25 +1,59 @@
 <?php
-// Junior Dev Logic: Defining a simple Product Array to build our interface 
-// before hooking up the real database!
-$featured_products = [
-    ["name" => "Buffalo Meat", "price" => 250, "image" => "/cleckbasket/assets/images/buffalomeat.png"],
-    ["name" => "Bitter Gourd", "price" => 120, "image" => "/cleckbasket/assets/images/BitterGourd.png"],
-    ["name" => "Fresh Passionfruits", "price" => 180, "image" => "/cleckbasket/assets/images/passionfruit.png"],
-    ["name" => "Aged Gouda", "price" => 90, "image" => "/cleckbasket/assets/images/agedgouda.png"],
-    ["name" => "Salmon Fillet", "price" => 110, "image" => "/cleckbasket/assets/images/salmonfillet.png"],
-    ["name" => "Whole Chicken", "price" => 80, "image" => "/cleckbasket/assets/images/wholechicken.png"]
-];
+require_once '../../backend/connect.php';
 
-$fruits_data = [
-    ["name" => "Buffalo Meat", "price" => "3.99", "rating" => "4.9", "reviews" => 287, "bgColor" => "#FDF49B", "image" => "/cleckbasket/assets/images/buffalomeat.png", "inCart" => 1],
-        ["name" => "Salmon Fillet", "price" => "3.99", "rating" => "4.7", "reviews" => 300, "bgColor" => "#FFC594", "image" => "/cleckbasket/assets/images/salmonfillet.png", "inCart" => 0],
-    ["name" => "Cheese", "price" => "1.99", "rating" => "4.5", "reviews" => 100, "bgColor" => "#FDADA3", "image" => "/cleckbasket/assets/images/agedgouda.png", "inCart" => 0],
-    ["name" => "Bread", "price" => "1.99", "rating" => "4.4", "reviews" => 587, "bgColor" => "#FF9A9B", "image" => "/cleckbasket/assets/images/bread.png", "inCart" => 0],
-    ["name" => "Bitter Gourd", "price" => "1.99", "rating" => "4.4", "reviews" => 387, "bgColor" => "#C6D37B", "image" => "/cleckbasket/assets/images/BitterGourd.png", "inCart" => 0],
-    ["name" => "Mango", "price" => "4.99", "rating" => "4.3", "reviews" => 127, "bgColor" => "#FADC54", "image" => "/cleckbasket/assets/images/mango.png", "inCart" => 0],
-    ["name" => "Grapes", "price" => "3.45", "rating" => "4.2", "reviews" => 117, "bgColor" => "#DDF1A1", "image" => "/cleckbasket/assets/images/grapes.png", "inCart" => 0],
-    ["name" => "Paw Paw", "price" => "2.89", "rating" => "4.2", "reviews" => 23, "bgColor" => "#F6F6F6", "image" => "/cleckbasket/assets/images/pawpaw.png", "inCart" => 0]
-];
+$featured_products = [];
+$fruits_data       = [];
+
+$conn = getDBConnection();
+
+if ($conn) {
+    // Featured products — 6 most recently added products
+    $sql = "SELECT p.product_id, p.product_name, p.price, p.product_image
+            FROM product p
+            ORDER BY p.product_id DESC
+            FETCH FIRST 6 ROWS ONLY";
+    $stmt = oci_parse($conn, $sql);
+    oci_execute($stmt);
+    while ($row = oci_fetch_assoc($stmt)) {
+        $featured_products[] = [
+            'id'    => $row['PRODUCT_ID'],
+            'name'  => $row['PRODUCT_NAME'],
+            'price' => $row['PRICE'],
+            'image' => '/cleckbasket/assets/images/' . $row['PRODUCT_IMAGE'],
+        ];
+    }
+    oci_free_statement($stmt);
+
+    // Top rated products — up to 8, sorted by average review rating
+    $bg_colors = ['#FDF49B','#FFC594','#FDADA3','#FF9A9B','#C6D37B','#FADC54','#DDF1A1','#F6F6F6'];
+    $sql2 = "SELECT p.product_id, p.product_name, p.price, p.product_image,
+                    ROUND(NVL(AVG(r.review_rating), 0), 1) AS avg_rating,
+                    COUNT(r.review_id) AS review_count
+             FROM product p
+             LEFT JOIN review r ON p.product_id = r.product_id
+             GROUP BY p.product_id, p.product_name, p.price, p.product_image
+             ORDER BY avg_rating DESC
+             FETCH FIRST 8 ROWS ONLY";
+    $stmt2 = oci_parse($conn, $sql2);
+    oci_execute($stmt2);
+    $i = 0;
+    while ($row = oci_fetch_assoc($stmt2)) {
+        $fruits_data[] = [
+            'id'      => $row['PRODUCT_ID'],
+            'name'    => $row['PRODUCT_NAME'],
+            'price'   => number_format((float)$row['PRICE'], 2),
+            'rating'  => $row['AVG_RATING'],
+            'reviews' => (int)$row['REVIEW_COUNT'],
+            'bgColor' => $bg_colors[$i % count($bg_colors)],
+            'image'   => '/cleckbasket/assets/images/' . $row['PRODUCT_IMAGE'],
+            'inCart'  => 0,
+        ];
+        $i++;
+    }
+    oci_free_statement($stmt2);
+    oci_close($conn);
+}
+
 $show_fruit_slider = count($fruits_data) > 5;
 ?>
 <!DOCTYPE html>
@@ -52,9 +86,9 @@ $show_fruit_slider = count($fruits_data) > 5;
     ====================================================== -->
     <section class="banner-hero">
         <div class="banner-text">
-            <h1>FRESH, LOCAL, YOURS.</h1>
+            <h1>FRESH, LOCAL, YOURS</h1>
             <h2>Your Neighborhood Market, <span class="banner-highlight">Online</span></h2>
-            <p>Shop from your favorite local traders online and pick up fresh goods with ease.</p>
+            <p>Shop from your favorite local traders online and pick up fresh goods with ease</p>
             <a href="/cleckbasket/includes/pages/shop.php" class="banner-btn">SHOP NOW</a>
         </div>
         <div class="banner-image">
@@ -75,8 +109,8 @@ $show_fruit_slider = count($fruits_data) > 5;
             <!-- Card 1 — Light Green -->
             <div class="promo-card card-green">
                 <div class="promo-text">
-                    <h3>Same Day Delivery</h3>
-                    <p>On orders above Rs. 1000</p>
+                    <h3>Buy Online</h3>
+                    <p> Collect With Convenience</p>
                     <a href="/cleckbasket/includes/pages/shop.php" class="promo-btn btn-dark">Shop Now</a>
                 </div>
                 <div class="promo-img">
@@ -113,7 +147,7 @@ $show_fruit_slider = count($fruits_data) > 5;
                 <div class="promo-text">
                     <h3>Farmer's Pick</h3>
                     <p>On first buyers</p>
-                    <a href="/cleckbasket/includes/pages/shop.php" class="promo-btn btn-light">Shop Now</a>
+                    <a href="/cleckbasket/includes/pages/about.php" class="promo-btn btn-light">About Us</a>
                 </div>
                 <div class="promo-img">
                     <img src="/cleckbasket/assets/images/grocery4.png" alt="Farmer's Pick">
@@ -194,31 +228,30 @@ $show_fruit_slider = count($fruits_data) > 5;
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
                 <div class="fruits-list" data-fruits-list>
+                <?php if (empty($fruits_data)): ?>
+                    <p style="color:#888;padding:1rem;">No products available.</p>
+                <?php else: ?>
                 <?php foreach ($fruits_data as $fruit): ?>
-                    <div class="fruit-card">
+                    <div class="fruit-card" data-product-id="<?php echo $fruit['id']; ?>">
                         <div class="fruit-img-box" style="background-color: <?php echo $fruit['bgColor']; ?>;">
-                            <img src="<?php echo $fruit['image']; ?>" alt="<?php echo $fruit['name']; ?>" onerror="this.style.display='none'">
-                            <?php if (isset($fruit['inCart']) && $fruit['inCart'] > 0): ?>
-                                <div class="fruit-add-btn pill-btn">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                    <span><?php echo $fruit['inCart']; ?></span>
-                                    <i class="fa-solid fa-plus"></i>
-                                </div>
-                            <?php else: ?>
-                                <div class="fruit-add-btn circle-btn">
-                                    <i class="fa-solid fa-plus"></i>
-                                </div>
-                            <?php endif; ?>
+                            <img src="<?php echo htmlspecialchars($fruit['image']); ?>"
+                                 alt="<?php echo htmlspecialchars($fruit['name']); ?>"
+                                 onerror="this.onerror=null;this.style.opacity='0'">
+                            <div class="fruit-add-btn circle-btn">
+                                <i class="fa-solid fa-plus"></i>
+                            </div>
                         </div>
                         <div class="fruit-info">
-                            <h3><?php echo $fruit['name']; ?></h3>
+                            <h3><?php echo htmlspecialchars($fruit['name']); ?></h3>
                             <div class="fruit-rating">
-                                <span class="star">⭐</span> <?php echo $fruit['rating']; ?> (<?php echo $fruit['reviews']; ?>)
+                                <span class="star">⭐</span>
+                                <?php echo $fruit['rating'] > 0 ? $fruit['rating'] . ' (' . $fruit['reviews'] . ' reviews)' : 'No reviews yet'; ?>
                             </div>
-                            <p class="fruit-price">$<?php echo $fruit['price']; ?></p>
+                            <p class="fruit-price">£<?php echo $fruit['price']; ?></p>
                         </div>
                     </div>
                 <?php endforeach; ?>
+                <?php endif; ?>
                 </div>
                 <button class="fruit-nav fruit-next<?php echo $show_fruit_slider ? ' is-visible' : ''; ?>" type="button" aria-label="Scroll fruits right">
                     <i class="fa-solid fa-chevron-right"></i>
@@ -267,16 +300,20 @@ $show_fruit_slider = count($fruits_data) > 5;
         <div class="container">
             <div class="product-container">
 
-                <!-- DYNAMIC PRODUCTS RENDERED VIA PHP FOREACH -->
+                <?php if (empty($featured_products)): ?>
+                    <p style="color:#888;padding:2rem;">No products available at the moment.</p>
+                <?php else: ?>
                 <?php foreach ($featured_products as $product): ?>
-                    <div class="product-card">
+                    <div class="product-card" data-product-id="<?php echo $product['id']; ?>">
                         <div class="image-container">
-                            <img src="<?php echo $product['image']; ?>" alt="<?php echo $product['name']; ?>">
+                            <img src="<?php echo htmlspecialchars($product['image']); ?>"
+                                 alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                 onerror="this.onerror=null;this.style.opacity='0'">
                         </div>
-                        <h3><?php echo $product['name']; ?></h3>
-                        <p class="price">£ <?php echo $product['price']; ?></p>
+                        <h3><?php echo htmlspecialchars($product['name']); ?></h3>
+                        <p class="price">£<?php echo number_format((float)$product['price'], 2); ?></p>
                         <div class="card-actions">
-                            <button class="add-to-cart">Add TO Cart</button>
+                            <button class="add-to-cart">Add to Cart</button>
                             <div class="quantity-container">
                                 <input type="text" value="1" class="quantity-input">
                                 <div class="quantity-buttons">
@@ -284,13 +321,15 @@ $show_fruit_slider = count($fruits_data) > 5;
                                     <button class="quantity-btn">−</button>
                                 </div>
                             </div>
-                            <button class="wishlist"><svg viewBox="0 0 24 24">
-                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
-                                            </path>
-                                        </svg></button>
+                            <button class="wishlist">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 <?php endforeach; ?>
+                <?php endif; ?>
 
             </div>
         </div>

@@ -375,6 +375,11 @@ body {
     color: var(--col-urgent-text);
 }
 
+.status-pill.closed {
+    background: #e0e0e0;
+    color: #888;
+}
+
 /* Footer Confirmation Bar */
 .confirmation-bar {
     position: fixed;

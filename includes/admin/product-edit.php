@@ -1,30 +1,106 @@
 <?php
-session_start();
+require_once 'admin_auth.php';
 
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header('Location: login.php');
-    exit;
+$pid     = (int)($_GET['id'] ?? 0);
+$message = '';
+$error   = '';
+
+if (!$pid) { header('Location: products.php'); exit; }
+
+// Load categories
+$categories = [];
+$conn = getDBConnection();
+if ($conn) {
+    $s = oci_parse($conn, "SELECT product_category_id, category_type FROM product_category ORDER BY category_type");
+    oci_execute($s);
+    while ($row = oci_fetch_assoc($s)) $categories[] = $row;
+    oci_free_statement($s);
+    oci_close($conn);
 }
 
-$product_id = $_GET['id'] ?? null;
-$defaultCategories = ['Butcher', 'Greengrocer', 'Delicatessen', 'Fishmonger', 'Bakery'];
-$categories = isset($_SESSION['admin_categories']) ? array_column($_SESSION['admin_categories'], 'name') : $defaultCategories;
+// Load product
+$product = null;
+$conn = getDBConnection();
+if ($conn) {
+    $s = oci_parse($conn,
+        "SELECT product_id, product_name, description, price, stock_quantity,
+                product_image, product_category_id
+         FROM product WHERE product_id = :pid");
+    oci_bind_by_name($s, ':pid', $pid);
+    oci_execute($s);
+    $product = oci_fetch_assoc($s);
+    oci_free_statement($s);
+    oci_close($conn);
+}
 
-// Mock product data
-$product = [
-    'id' => 1,
-    'name' => 'Buffalo Meat',
-    'category' => 'Butcher',
-    'price' => 250,
-    'stock' => 45,
-    'description' => 'Fresh buffalo meat'
-];
+if (!$product) { header('Location: products.php'); exit; }
 
-$message = '';
-
+// Handle update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // TODO: Update in database
-    $message = 'Product updated successfully!';
+    $name      = trim($_POST['name']        ?? '');
+    $catId     = (int)($_POST['category_id'] ?? 0);
+    $price     = (float)($_POST['price']     ?? 0);
+    $stock     = (int)($_POST['stock']       ?? 0);
+    $desc      = trim($_POST['description'] ?? '');
+    $imageName = $product['PRODUCT_IMAGE'];
+
+    if ($name === '' || $catId === 0 || $price <= 0) {
+        $error = 'Product name, category, and price are required.';
+    }
+
+    // Handle optional image upload
+    if (!$error && isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $file = $_FILES['image'];
+        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            $error = 'Image upload failed.';
+        } elseif (!in_array($file['type'], $allowed, true)) {
+            $error = 'Invalid image type.';
+        } else {
+            $ext     = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $newName = 'product_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $dest    = __DIR__ . '/../../assets/images/' . $newName;
+            if (move_uploaded_file($file['tmp_name'], $dest)) {
+                $imageName = $newName;
+            } else {
+                $error = 'Failed to save image.';
+            }
+        }
+    }
+
+    if (!$error) {
+        $conn = getDBConnection();
+        if ($conn) {
+            $upd = oci_parse($conn,
+                "UPDATE product
+                 SET product_name = :pname, description = :pdesc, price = :price,
+                     stock_quantity = :stock, product_image = :img, product_category_id = :catid
+                 WHERE product_id = :pid");
+            oci_bind_by_name($upd, ':pname', $name);
+            oci_bind_by_name($upd, ':pdesc', $desc);
+            oci_bind_by_name($upd, ':price', $price);
+            oci_bind_by_name($upd, ':stock', $stock);
+            oci_bind_by_name($upd, ':img',   $imageName);
+            oci_bind_by_name($upd, ':catid', $catId);
+            oci_bind_by_name($upd, ':pid',   $pid);
+            if (oci_execute($upd)) {
+                oci_commit($conn);
+                $message = 'Product updated successfully.';
+                // Refresh product data
+                $product['PRODUCT_NAME']        = $name;
+                $product['DESCRIPTION']         = $desc;
+                $product['PRICE']               = $price;
+                $product['STOCK_QUANTITY']      = $stock;
+                $product['PRODUCT_IMAGE']       = $imageName;
+                $product['PRODUCT_CATEGORY_ID'] = $catId;
+            } else {
+                $err   = oci_error($upd);
+                $error = 'Update failed: ' . $err['message'];
+            }
+            oci_free_statement($upd);
+            oci_close($conn);
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -33,82 +109,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Product - Admin Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/admin-style.css">
     <link rel="stylesheet" href="css/table-style.css">
 </head>
 <body>
-    <div class="admin-container">
-        <aside class="sidebar">
-            <div class="logo">
-                <a href="index.php" style="text-decoration:none; color: inherit;">
-                    <img src="../assets/images/logo.png" alt="CleckBasket" style="height: 40px; width: auto;">
-                </a>
+<div class="admin-container">
+    <?php admin_sidebar('products'); ?>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <h1>Edit Product</h1>
+            <div class="user-info"><span><?= h($_SESSION['admin_username']) ?></span></div>
+        </header>
+
+        <div class="content">
+            <?php if ($message): ?>
+                <div style="background:#e8f5e9;color:#2e7d32;padding:15px;border-radius:8px;margin-bottom:20px;"><?= h($message) ?></div>
+            <?php endif; ?>
+            <?php if ($error): ?>
+                <div style="background:#ffebee;color:#c62828;padding:15px;border-radius:8px;margin-bottom:20px;"><?= h($error) ?></div>
+            <?php endif; ?>
+
+            <div class="form-container">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="name">Product Name *</label>
+                        <input type="text" id="name" name="name"
+                               value="<?= h($product['PRODUCT_NAME']) ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category_id">Category *</label>
+                        <select id="category_id" name="category_id" required>
+                            <option value="">Select Category</option>
+                            <?php foreach ($categories as $c): ?>
+                                <option value="<?= (int)$c['PRODUCT_CATEGORY_ID'] ?>"
+                                    <?= (int)$product['PRODUCT_CATEGORY_ID'] === (int)$c['PRODUCT_CATEGORY_ID'] ? 'selected' : '' ?>>
+                                    <?= h($c['CATEGORY_TYPE']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="price">Price (£) *</label>
+                        <input type="number" id="price" name="price" step="0.01" min="0.01"
+                               value="<?= h($product['PRICE']) ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stock">Stock Quantity</label>
+                        <input type="number" id="stock" name="stock" min="0"
+                               value="<?= h($product['STOCK_QUANTITY']) ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="image">Product Image</label>
+                        <?php if (!empty($product['PRODUCT_IMAGE'])): ?>
+                            <div style="margin-bottom:8px;">
+                                <img src="../../assets/images/<?= h($product['PRODUCT_IMAGE']) ?>"
+                                     alt="Current image"
+                                     style="max-width:120px;max-height:120px;border-radius:6px;border:1px solid #ddd;">
+                                <div style="font-size:12px;color:#666;margin-top:4px;">Current image — upload to replace</div>
+                            </div>
+                        <?php endif; ?>
+                        <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/gif,image/webp">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description"><?= h($product['DESCRIPTION'] ?? '') ?></textarea>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="btn-primary">Update Product</button>
+                        <a href="products.php" class="btn-secondary">Cancel</a>
+                    </div>
+                </form>
             </div>
-            <nav class="nav-menu">
-                <a href="index.php" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
-                <a href="products.php" class="nav-item active"><i class="fas fa-box"></i><span>Products</span></a>
-                <a href="orders.php" class="nav-item"><i class="fas fa-shopping-cart"></i><span>Orders</span></a>
-                <a href="customers.php" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
-                <a href="categories.php" class="nav-item"><i class="fas fa-tags"></i><span>Categories</span></a>
-                <a href="reports.php" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
-                <a href="settings.php" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
-                <a href="logout.php" class="nav-item logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
-            </nav>
-        </aside>
-
-        <main class="main-content">
-            <header class="top-bar">
-                <h1>Edit Product</h1>
-            </header>
-
-            <div class="content">
-                <?php if ($message): ?>
-                    <div class="success-message"><?php echo htmlspecialchars($message); ?></div>
-                <?php endif; ?>
-
-                <div class="form-container">
-                    <form method="POST">
-                        <div class="form-group">
-                            <label for="name">Product Name</label>
-                            <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($product['name']); ?>" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="category">Category</label>
-                            <select id="category" name="category" required>
-                                <?php foreach ($categories as $cat): ?>
-                                    <option value="<?php echo htmlspecialchars($cat); ?>" <?php echo $product['category'] === $cat ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($cat); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="price">Price (£)</label>
-                            <input type="number" id="price" name="price" step="0.01" value="<?php echo htmlspecialchars($product['price']); ?>" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="stock">Stock Quantity</label>
-                            <input type="number" id="stock" name="stock" value="<?php echo htmlspecialchars($product['stock']); ?>" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <textarea id="description" name="description"><?php echo htmlspecialchars($product['description']); ?></textarea>
-                        </div>
-
-                        <div class="form-buttons">
-                            <button type="submit" class="btn-primary">Update Product</button>
-                            <a href="products.php" class="btn-secondary">Cancel</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </main>
-    </div>
+        </div>
+    </main>
+</div>
 </body>
 </html>

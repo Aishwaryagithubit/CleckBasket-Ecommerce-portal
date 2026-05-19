@@ -1,18 +1,58 @@
 <?php
-session_start();
+require_once 'admin_auth.php';
 
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header('Location: login.php');
-    exit;
+// Monthly sales for current year
+$reports     = [];
+$topProducts = [];
+$topTraders  = [];
+
+$conn = getDBConnection();
+if ($conn) {
+    // Monthly breakdown
+    $s = oci_parse($conn,
+        "SELECT TO_CHAR(o.order_date, 'YYYY-MM') AS yr_month,
+                TO_CHAR(o.order_date, 'Month YYYY') AS month_label,
+                COUNT(o.order_id) AS order_count,
+                NVL(SUM(o.order_amount), 0) AS revenue,
+                COUNT(DISTINCT o.user_id) AS unique_customers
+         FROM orders o
+         WHERE TO_CHAR(o.order_date, 'YYYY') = TO_CHAR(SYSDATE, 'YYYY')
+         GROUP BY TO_CHAR(o.order_date, 'YYYY-MM'), TO_CHAR(o.order_date, 'Month YYYY')
+         ORDER BY yr_month DESC");
+    oci_execute($s);
+    while ($row = oci_fetch_assoc($s)) $reports[] = $row;
+    oci_free_statement($s);
+
+    // Top 5 products by quantity sold
+    $s = oci_parse($conn,
+        "SELECT p.product_name, pc.category_type,
+                NVL(SUM(op.quantity), 0) AS qty_sold,
+                NVL(SUM(op.quantity * op.price_at_purchase), 0) AS revenue
+         FROM product p
+         JOIN product_category pc ON p.product_category_id = pc.product_category_id
+         LEFT JOIN order_product op ON p.product_id = op.product_id
+         GROUP BY p.product_name, pc.category_type
+         ORDER BY qty_sold DESC
+         FETCH FIRST 5 ROWS ONLY");
+    oci_execute($s);
+    while ($row = oci_fetch_assoc($s)) $topProducts[] = $row;
+    oci_free_statement($s);
+
+    // Totals for the year
+    $s = oci_parse($conn,
+        "SELECT NVL(SUM(order_amount), 0) AS total_rev,
+                COUNT(*) AS total_orders
+         FROM orders
+         WHERE TO_CHAR(order_date, 'YYYY') = TO_CHAR(SYSDATE, 'YYYY')");
+    oci_execute($s);
+    $totals = oci_fetch_assoc($s);
+    oci_free_statement($s);
+
+    oci_close($conn);
 }
 
-$reports = [
-    ['month' => 'January 2026', 'sales' => 85000, 'orders' => 234, 'customers' => 156],
-    ['month' => 'February 2026', 'sales' => 92000, 'orders' => 267, 'customers' => 178],
-    ['month' => 'March 2026', 'sales' => 78000, 'orders' => 210, 'customers' => 142],
-    ['month' => 'April 2026', 'sales' => 95000, 'orders' => 280, 'customers' => 195],
-    ['month' => 'May 2026', 'sales' => 45000, 'orders' => 125, 'customers' => 89],
-];
+$totalRev    = (float)($totals['TOTAL_REV']    ?? 0);
+$totalOrders = (int)($totals['TOTAL_ORDERS'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,61 +60,104 @@ $reports = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports - Admin Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/admin-style.css">
     <link rel="stylesheet" href="css/table-style.css">
 </head>
 <body>
-    <div class="admin-container">
-        <aside class="sidebar">
-            <div class="logo"><a href="index.php" style="text-decoration:none; color: inherit;"><img src="../assets/images/logo.png" alt="CleckBasket" style="height: 40px; width: auto;"></a></div>
-            <nav class="nav-menu">
-                <a href="index.php" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
-                <a href="products.php" class="nav-item"><i class="fas fa-box"></i><span>Products</span></a>
-                <a href="orders.php" class="nav-item"><i class="fas fa-shopping-cart"></i><span>Orders</span></a>
-                <a href="customers.php" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
-                <a href="categories.php" class="nav-item"><i class="fas fa-tags"></i><span>Categories</span></a>
-                <a href="reports.php" class="nav-item active"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
-                <a href="settings.php" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
-                <a href="logout.php" class="nav-item logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
-            </nav>
-        </aside>
+<div class="admin-container">
+    <?php admin_sidebar('reports'); ?>
 
-        <main class="main-content">
-            <header class="top-bar">
-                <h1>Reports & Analytics</h1>
-            </header>
+    <main class="main-content">
+        <header class="top-bar">
+            <h1>Reports &amp; Analytics</h1>
+            <div class="user-info"><span><?= h($_SESSION['admin_username']) ?></span></div>
+        </header>
 
-            <div class="content">
-                <div class="page-header">
-                    <h2>Sales Analytics</h2>
+        <div class="content">
+            <div class="page-header">
+                <h2>Sales Analytics — <?= date('Y') ?></h2>
+            </div>
+
+            <!-- Year totals -->
+            <section class="metrics" style="grid-template-columns:repeat(2,1fr);margin-bottom:24px;">
+                <div class="metric-card">
+                    <div class="metric-icon sales"><i class="fas fa-pound-sign"></i></div>
+                    <div class="metric-details">
+                        <p>Revenue This Year</p>
+                        <h3>£<?= number_format($totalRev, 0) ?></h3>
+                    </div>
                 </div>
+                <div class="metric-card">
+                    <div class="metric-icon orders"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="metric-details">
+                        <p>Orders This Year</p>
+                        <h3><?= $totalOrders ?></h3>
+                    </div>
+                </div>
+            </section>
 
+            <!-- Monthly breakdown -->
+            <div class="card" style="margin-bottom:24px;">
+                <div class="card-header"><h2>Monthly Breakdown</h2></div>
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
                                 <th>Month</th>
-                                <th>Sales</th>
+                                <th>Revenue</th>
                                 <th>Orders</th>
-                                <th>Customers</th>
+                                <th>Unique Customers</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($reports as $report): ?>
+                        <?php if (empty($reports)): ?>
+                            <tr><td colspan="4" style="text-align:center;color:#999;">No sales data for <?= date('Y') ?>.</td></tr>
+                        <?php else: ?>
+                        <?php foreach ($reports as $r): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($report['month']); ?></td>
-                                <td>£<?php echo number_format($report['sales']); ?></td>
-                                <td><?php echo $report['orders']; ?></td>
-                                <td><?php echo $report['customers']; ?></td>
+                                <td><?= h(trim($r['MONTH_LABEL'])) ?></td>
+                                <td>£<?= number_format((float)$r['REVENUE'], 2) ?></td>
+                                <td><?= (int)$r['ORDER_COUNT'] ?></td>
+                                <td><?= (int)$r['UNIQUE_CUSTOMERS'] ?></td>
                             </tr>
-                            <?php endforeach; ?>
+                        <?php endforeach; ?>
+                        <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
-        </main>
-    </div>
+
+            <!-- Top products -->
+            <?php if (!empty($topProducts)): ?>
+            <div class="card">
+                <div class="card-header"><h2>Top 5 Products by Units Sold</h2></div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Units Sold</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($topProducts as $tp): ?>
+                            <tr>
+                                <td><?= h($tp['PRODUCT_NAME']) ?></td>
+                                <td><?= h($tp['CATEGORY_TYPE']) ?></td>
+                                <td><?= (int)$tp['QTY_SOLD'] ?></td>
+                                <td>£<?= number_format((float)$tp['REVENUE'], 2) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <?php endif; ?>
+        </div>
+    </main>
+</div>
 </body>
 </html>

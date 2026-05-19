@@ -1,11 +1,145 @@
-<?php /* Product Detail — layout updated to match provided reference */ ?>
+<?php
+if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/../../backend/connect.php';
+
+$product_id = (int)($_GET['id'] ?? 0);
+if ($product_id <= 0) {
+    header('Location: /cleckbasket/includes/pages/shop.php');
+    exit;
+}
+
+$product      = null;
+$reviews      = [];
+$related      = [];
+$avg_rating   = 0;
+$review_count = 0;
+
+$conn = getDBConnection();
+if ($conn) {
+    // ── Main product ──
+    $sql  = "SELECT p.product_id, p.product_name, p.description, p.price,
+                    p.stock_quantity, p.allergy_information, p.product_image,
+                    p.product_category_id,
+                    pc.category_type, s.shop_name
+             FROM product p
+             JOIN product_category pc ON p.product_category_id = pc.product_category_id
+             JOIN shop s              ON p.shop_id             = s.shop_id
+             WHERE p.product_id = :id";
+    $stmt = oci_parse($conn, $sql);
+    oci_bind_by_name($stmt, ':id', $product_id);
+    if (oci_execute($stmt)) {
+        $row = oci_fetch_assoc($stmt);
+        if ($row) {
+            $product = [
+                'id'          => (int)$row['PRODUCT_ID'],
+                'name'        => $row['PRODUCT_NAME'],
+                'description' => $row['DESCRIPTION'] ?? '',
+                'price'       => (float)$row['PRICE'],
+                'stock'       => (int)$row['STOCK_QUANTITY'],
+                'allergy'     => $row['ALLERGY_INFORMATION'] ?? '',
+                'image'       => $row['PRODUCT_IMAGE'],
+                'category_id' => (int)$row['PRODUCT_CATEGORY_ID'],
+                'category'    => $row['CATEGORY_TYPE'],
+                'shop'        => $row['SHOP_NAME'],
+            ];
+        }
+    }
+    oci_free_statement($stmt);
+
+    if (!$product) {
+        oci_close($conn);
+        header('Location: /cleckbasket/includes/pages/shop.php');
+        exit;
+    }
+
+    // ── Reviews ──
+    $sql2  = "SELECT r.review, r.review_rating, r.created_date,
+                     u.firstname, u.lastname
+              FROM review r
+              LEFT JOIN users u ON r.user_id = u.user_id
+              WHERE r.product_id = :id
+              ORDER BY r.created_date DESC
+              FETCH FIRST 6 ROWS ONLY";
+    $stmt2 = oci_parse($conn, $sql2);
+    oci_bind_by_name($stmt2, ':id', $product_id);
+    if (oci_execute($stmt2)) {
+        while ($row = oci_fetch_assoc($stmt2)) {
+            $first = $row['FIRSTNAME'] ?? 'Anonymous';
+            $last  = !empty($row['LASTNAME']) ? $row['LASTNAME'][0] . '.' : '';
+            $reviews[] = [
+                'text'   => $row['REVIEW'],
+                'rating' => max(1, min(5, (int)$row['REVIEW_RATING'])),
+                'date'   => $row['CREATED_DATE'],
+                'name'   => trim($first . ' ' . $last),
+            ];
+        }
+    }
+    oci_free_statement($stmt2);
+
+    if (!empty($reviews)) {
+        $avg_rating   = round(array_sum(array_column($reviews, 'rating')) / count($reviews), 1);
+        $review_count = count($reviews);
+    }
+
+    // ── Related products (same category) ──
+    $cat_id = $product['category_id'];
+    $sql3   = "SELECT product_id, product_name, price, product_image
+               FROM product
+               WHERE product_category_id = :cat AND product_id != :id
+               ORDER BY product_id DESC
+               FETCH FIRST 3 ROWS ONLY";
+    $stmt3  = oci_parse($conn, $sql3);
+    oci_bind_by_name($stmt3, ':cat', $cat_id);
+    oci_bind_by_name($stmt3, ':id',  $product_id);
+    if (oci_execute($stmt3)) {
+        while ($row = oci_fetch_assoc($stmt3)) {
+            $related[] = [
+                'id'    => (int)$row['PRODUCT_ID'],
+                'name'  => $row['PRODUCT_NAME'],
+                'price' => (float)$row['PRICE'],
+                'image' => $row['PRODUCT_IMAGE'],
+            ];
+        }
+    }
+    oci_free_statement($stmt3);
+    oci_close($conn);
+}
+
+// Helper: render filled/empty stars
+function starStr(float $r, int $max = 5): string {
+    $full = (int)round($r);
+    return str_repeat('★', $full) . str_repeat('☆', $max - $full);
+}
+
+// Category → shop URL map
+$cat_links = [
+    'butcher'     => '/cleckbasket/includes/pages/shop.php?cat=butcher',
+    'greengrocer' => '/cleckbasket/includes/pages/shop.php?cat=greengrocer',
+    'bakery'      => '/cleckbasket/includes/pages/shop.php?cat=bakery',
+    'fishmonger'  => '/cleckbasket/includes/pages/shop.php?cat=fishmonger',
+    'delicatessen'=> '/cleckbasket/includes/pages/shop.php?cat=delicatessen',
+];
+$cat_images = [
+    'butcher'     => 'buffalomeat.png',
+    'greengrocer' => 'greengrocers.png',
+    'bakery'      => 'bakerys.png',
+    'fishmonger'  => 'fishmongers.png',
+    'delicatessen'=> 'nutritions.png',
+];
+
+$image_url = '/cleckbasket/assets/images/' . htmlspecialchars($product['image']);
+$name_safe = htmlspecialchars($product['name']);
+$desc_safe = $product['description']
+    ? htmlspecialchars($product['description'])
+    : 'Fresh, high-quality ' . $name_safe . ' from ' . htmlspecialchars($product['shop']) . ' — sourced locally and delivered with care.';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fresh Blueberries - Cleck Basket</title>
+  <title><?php echo $name_safe; ?> - CleckBasket</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Inter:wght@400;500;600&family=Roboto:wght@400&display=swap" rel="stylesheet" />
@@ -37,22 +171,9 @@
       line-height: 1.4;
     }
 
-    img {
-      max-width: 100%;
-      display: block;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button {
-      font: inherit;
-      border: 0;
-      background: transparent;
-      cursor: pointer;
-    }
+    img { max-width: 100%; display: block; }
+    a   { color: inherit; text-decoration: none; }
+    button { font: inherit; border: 0; background: transparent; cursor: pointer; }
 
     .wrapper {
       width: min(1220px, calc(100% - 38px));
@@ -78,26 +199,21 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      background: #f9f9f9;
+      border-radius: 18px;
     }
 
     .product-image {
       width: min(100%, 360px);
       max-height: 360px;
       object-fit: contain;
-      filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.12));
+      filter: drop-shadow(0 24px 30px rgba(0,0,0,.12));
       animation: floatin .45s ease;
     }
 
     @keyframes floatin {
-      from {
-        opacity: 0;
-        transform: translateY(18px) scale(0.96);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
+      from { opacity: 0; transform: translateY(18px) scale(.96); }
+      to   { opacity: 1; transform: translateY(0)   scale(1);   }
     }
 
     .details h1 {
@@ -106,7 +222,7 @@
       font-weight: 400;
       line-height: 1.4;
       margin-bottom: 11px;
-      color: #000000;
+      color: #000;
       letter-spacing: -0.04em;
     }
 
@@ -123,6 +239,13 @@
       line-height: 1;
     }
 
+    .shop-label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
     .rating {
       display: flex;
       align-items: center;
@@ -133,11 +256,7 @@
       font-size: 16px;
     }
 
-    .stars {
-      color: var(--star);
-      letter-spacing: 2px;
-      font-size: 20px;
-    }
+    .stars { color: var(--star); letter-spacing: 2px; font-size: 20px; }
 
     .price {
       font-family: 'DM Sans', sans-serif;
@@ -145,13 +264,7 @@
       font-weight: 700;
       line-height: 1.4;
       margin: 10px 0 4px;
-      color: #000000;
-      letter-spacing: -0.04em;
-    }
-
-    .price small {
-      font-size: 0.5em;
-      font-weight: 700;
+      color: #000;
       letter-spacing: -0.04em;
     }
 
@@ -161,39 +274,57 @@
       margin: 8px 0 18px;
       font-family: 'DM Sans', sans-serif;
       font-size: 16px;
-      line-height: 1.4;
+      line-height: 1.6;
     }
 
-    .size-label {
+    .allergy-note {
+      font-size: 13px;
+      color: #c0392b;
+      margin-bottom: 18px;
+      font-style: italic;
+    }
+
+    .stock-note {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .qty-label {
       color: var(--muted);
       font-family: 'DM Sans', sans-serif;
       font-size: 16px;
       margin-bottom: 8px;
     }
 
-    .sizes {
+    .qty-row {
       display: flex;
-      gap: 13px;
+      align-items: center;
+      gap: 10px;
       margin-bottom: 24px;
     }
 
-    .sizes button {
+    .qty-btn {
+      width: 37px; height: 35px;
       border: 1px solid var(--border);
       border-radius: 4px;
-      width: 37px;
-      height: 35px;
-      color: var(--muted);
-      font-weight: 400;
-      font-size: 16px;
-      font-family: 'DM Sans', sans-serif;
-      transition: 0.2s ease;
-      background: #FFFFFF;
+      font-size: 18px;
+      color: var(--primary);
+      background: #fff;
+      transition: .2s;
     }
 
-    .sizes button.active {
-      background: var(--primary);
-      border-color: var(--border);
-      color: #FFFFFF;
+    .qty-btn:hover { background: var(--accent); }
+
+    .qty-display {
+      width: 52px;
+      text-align: center;
+      font-size: 16px;
+      font-family: 'DM Sans', sans-serif;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px;
+      color: var(--primary);
     }
 
     .cta-row {
@@ -213,12 +344,10 @@
       align-items: center;
       justify-content: center;
       transition: transform .2s ease, box-shadow .2s ease;
+      cursor: pointer;
     }
 
-    .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,.05); }
 
     .btn-cart {
       background: var(--primary);
@@ -241,11 +370,8 @@
       border: 1px solid #E3DDDD;
     }
 
-    .sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
+    /* ── Sidebar ── */
+    .sidebar { display: flex; flex-direction: column; gap: 24px; }
 
     .card {
       background: var(--card);
@@ -262,9 +388,8 @@
       color: #380000;
     }
 
-    .cat-item,
-    .mini-product {
-      border: 1px solid rgba(241, 231, 231, 0.5);
+    .cat-item, .mini-product {
+      border: 1px solid rgba(241,231,231,.5);
       border-radius: 13px;
       min-height: 48px;
       display: flex;
@@ -272,12 +397,15 @@
       padding: 0 16px;
       gap: 16px;
       margin-bottom: 11px;
-      background: #FFFFFF;
+      background: #fff;
       font-weight: 400;
       font-size: 16px;
       color: #380000;
       font-family: 'DM Sans', sans-serif;
+      transition: background .2s;
     }
+
+    .cat-item:hover, .mini-product:hover { background: #fdf5f5; }
 
     .mini-product {
       min-height: 84px;
@@ -287,42 +415,15 @@
       flex-direction: row;
     }
 
-    .mini-prod-info {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+    .mini-prod-info { display: flex; flex-direction: column; gap: 4px; }
+    .mini-prod-info .prod-title { font-family: 'DM Sans', sans-serif; font-weight: 700; color: #5A331C; font-size: 16px; }
+    .mini-prod-info .prod-price { font-family: 'DM Sans', sans-serif; font-weight: 700; color: #575757; font-size: 16px; }
 
-    .mini-prod-info .prod-title {
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 700;
-      color: #5A331C;
-      font-size: 16px;
-    }
+    .cat-item img  { width: 34px; height: 34px; object-fit: contain; }
+    .mini-product img { width: 55px; height: 55px; object-fit: cover; border-radius: 10px; }
 
-    .mini-prod-info .prod-price {
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 700;
-      color: #575757;
-      font-size: 16px;
-    }
-
-    .cat-item img {
-      width: 34px;
-      height: 34px;
-      object-fit: contain;
-    }
-
-    .mini-product img {
-      width: 55px;
-      height: 55px;
-      object-fit: contain;
-      border-radius: 10px;
-    }
-
-    .latest {
-      margin-top: 60px;
-    }
+    /* ── Reviews ── */
+    .latest { margin-top: 60px; }
 
     .latest h2 {
       font-family: 'Inter', sans-serif;
@@ -340,7 +441,7 @@
     }
 
     .review {
-      background: #FFFFFF;
+      background: #fff;
       border: 1px solid #D9D9D9;
       border-radius: 8px;
       padding: 24px;
@@ -355,115 +456,56 @@
       display: flex;
       gap: 4px;
       font-size: 20px;
-      margin-bottom: 0px;
       color: #F5A623;
       letter-spacing: 0;
     }
 
-    .review-body {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex-grow: 1;
-    }
+    .review-body { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
 
     .review h4 {
       font-family: 'Inter', sans-serif;
       font-weight: 600;
-      font-size: 24px;
-      line-height: 1.2;
+      font-size: 18px;
+      line-height: 1.3;
       color: #1E1E1E;
       letter-spacing: -0.02em;
-      margin-bottom: 0px;
     }
 
     .review p {
       font-family: 'Inter', sans-serif;
       font-weight: 400;
-      font-size: 16px;
-      color: #1E1E1E;
-      line-height: 1.4;
-      margin-bottom: 0px;
+      font-size: 15px;
+      color: #555;
+      line-height: 1.6;
     }
 
-    .review-user {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      margin-top: auto;
-    }
+    .review-user { display: flex; align-items: flex-start; gap: 12px; margin-top: auto; }
 
-    .review-user img {
-      width: 40px;
-      height: 40px;
-      border-radius: 9999px;
-      object-fit: cover;
-    }
+    .review-user img { width: 40px; height: 40px; border-radius: 9999px; object-fit: cover; }
 
-    .review-user div strong {
-      font-family: 'Inter', sans-serif;
-      font-weight: 600;
-      font-size: 16px;
-      color: #757575;
-      display: block;
-      line-height: 1.4;
-    }
+    .review-user div strong { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; color: #757575; display: block; }
+    .review-user div span  { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 13px; color: #B3B3B3; }
 
-    .review-user div span {
-      font-family: 'Inter', sans-serif;
-      font-weight: 400;
-      font-size: 16px;
-      color: #B3B3B3;
-      line-height: 1.4;
-    }
+    .no-reviews { color: var(--muted); font-style: italic; padding: 16px 0; }
 
+    /* ── Responsive ── */
     @media (max-width: 1150px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-      }
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: grid; grid-template-columns: 1fr 1fr; }
     }
 
     @media (max-width: 900px) {
-      .main {
-        grid-template-columns: 1fr;
-        gap: 18px;
-      }
-
-      .details h1 {
-        font-size: 2.35rem;
-      }
-
-      .cta-row {
-        flex-direction: column;
-      }
-
-      .btn {
-        width: 100%;
-      }
-
-      .review-grid {
-        grid-template-columns: 1fr;
-      }
+      .main { grid-template-columns: 1fr; gap: 18px; }
+      .details h1 { font-size: 2.35rem; }
+      .cta-row { flex-direction: column; }
+      .btn { width: 100%; }
     }
 
     @media (max-width: 620px) {
-      .wrapper {
-        width: calc(100% - 22px);
-        margin-top: 14px;
-      }
-
-      .sidebar {
-        grid-template-columns: 1fr;
-      }
-
-      .price {
-        font-size: 2.4rem;
-      }
+      .wrapper { width: calc(100% - 22px); margin-top: 14px; }
+      .sidebar { grid-template-columns: 1fr; }
+      .price { font-size: 2.4rem; }
+      .review { width: 100%; }
     }
   </style>
 </head>
@@ -473,212 +515,207 @@
 
   <div class="wrapper">
     <section class="layout" aria-label="Product detail layout">
+
+      <!-- ── LEFT: main content ── -->
       <div>
         <div class="main">
+
           <div class="product-image-wrap">
-            <img class="product-image" id="main-product-image" src="../../assets/images/passionfruit.png" alt="Fresh Blueberries" />
+            <img class="product-image"
+                 src="<?php echo $image_url; ?>"
+                 alt="<?php echo $name_safe; ?>"
+                 onerror="this.onerror=null;this.style.opacity='.4'">
           </div>
 
           <div class="details">
-            <h1>Fresh Blueberries</h1>
-            <span class="pill">Fruit</span>
+            <h1><?php echo $name_safe; ?></h1>
 
+            <span class="pill"><?php echo htmlspecialchars($product['category']); ?></span>
+            <span class="shop-label">Sold by <?php echo htmlspecialchars($product['shop']); ?></span>
+
+            <?php if ($review_count > 0): ?>
             <div class="rating" aria-label="Product rating">
-              <span class="stars">★★★★☆</span>
-              <span>(221)</span>
+              <span class="stars"><?php echo starStr($avg_rating); ?></span>
+              <span>(<?php echo $review_count; ?> review<?php echo $review_count !== 1 ? 's' : ''; ?>)</span>
             </div>
+            <?php else: ?>
+            <div class="rating"><span style="color:#bbb">No reviews yet</span></div>
+            <?php endif; ?>
 
-            <div class="price">&#163;5<small>.60 / lb</small></div>
+            <div class="price">&#163;<?php echo number_format($product['price'], 2); ?></div>
 
-            <p class="desc">
-              Fresh blueberries from Cleckheaton, Huddersfield - sweet, juicy, and
-              perfect for everyday snacking.
-            </p>
+            <p class="desc"><?php echo $desc_safe; ?></p>
 
-            <p class="size-label">Size/Weight</p>
-            <div class="sizes" id="size-options">
-              <button data-size="1lb">1lb</button>
-              <button data-size="2lb">2lb</button>
-              <button class="active" data-size="3lb">3lb</button>
-              <button data-size="4lb">4lb</button>
+            <?php if ($product['allergy']): ?>
+            <p class="allergy-note">Allergy info: <?php echo htmlspecialchars($product['allergy']); ?></p>
+            <?php endif; ?>
+
+            <p class="stock-note"><?php echo $product['stock'] > 0
+                ? htmlspecialchars($product['stock']) . ' in stock'
+                : 'Currently out of stock'; ?></p>
+
+            <p class="qty-label">Quantity</p>
+            <div class="qty-row">
+              <button class="qty-btn" id="qty-minus" aria-label="Decrease quantity">−</button>
+              <input class="qty-display" id="qty-value" type="text" value="1" readonly>
+              <button class="qty-btn" id="qty-plus"  aria-label="Increase quantity">+</button>
             </div>
 
             <div class="cta-row">
-              <button class="btn btn-cart" id="add-cart-btn">Add To Cart</button>
+              <button class="btn btn-cart" id="add-cart-btn"
+                      <?php echo $product['stock'] <= 0 ? 'disabled style="opacity:.5;cursor:not-allowed"' : ''; ?>>
+                Add To Cart
+              </button>
               <button class="btn btn-wish" id="wishlist-btn">Add To Wishlist</button>
-              <a class="btn btn-feedback" href="/cleckbasket/includes/pages/product_feedback.php">Product Feedback</a>
+              <a class="btn btn-feedback"
+                 href="/cleckbasket/includes/pages/product_feedback.php?id=<?php echo $product['id']; ?>">
+                Product Feedback
+              </a>
             </div>
-
           </div>
+
         </div>
 
-        <section class="latest" aria-label="Latest reviews">
+        <!-- ── Reviews ── -->
+        <section class="latest" aria-label="Product reviews">
           <h2>Latest reviews</h2>
+
+          <?php if (empty($reviews)): ?>
+            <p class="no-reviews">No reviews yet for this product. Be the first to leave one!</p>
+          <?php else: ?>
           <div class="review-grid">
+            <?php foreach ($reviews as $r): ?>
             <article class="review">
               <div class="stars">
-                <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                <?php for ($s = 1; $s <= 5; $s++): ?>
+                  <span><?php echo $s <= $r['rating'] ? '★' : '☆'; ?></span>
+                <?php endfor; ?>
               </div>
               <div class="review-body">
-                <h4>Absolutely love these!</h4>
-                <p>The blueberries arrived super fresh and were perfectly sweet. Great size too — not the tiny ones you get at supermarkets. Will definitely be ordering again.</p>
+                <p><?php echo htmlspecialchars($r['text']); ?></p>
               </div>
               <div class="review-user">
-                <img src="../../assets/images/about.png" alt="Sarah M." />
+                <img src="/cleckbasket/assets/images/Avatar.png"
+                     alt="<?php echo htmlspecialchars($r['name']); ?>"
+                     onerror="this.onerror=null;this.style.display='none'">
                 <div>
-                  <strong>Sarah M.</strong>
-                  <span>12 May 2025</span>
+                  <strong><?php echo htmlspecialchars($r['name']); ?></strong>
+                  <span><?php echo htmlspecialchars($r['date']); ?></span>
                 </div>
               </div>
             </article>
-
-            <article class="review">
-              <div class="stars">
-                <span>★</span><span>★</span><span>★</span><span>★</span><span>☆</span>
-              </div>
-              <div class="review-body">
-                <h4>Fresh and great value</h4>
-                <p>Really happy with the quality. Came well packaged and tasted great. Took one star off only because a small handful were a bit soft, but overall brilliant.</p>
-              </div>
-              <div class="review-user">
-                <img src="../../assets/images/about.png" alt="James R." />
-                <div>
-                  <strong>James R.</strong>
-                  <span>28 April 2025</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="review">
-              <div class="stars">
-                <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-              </div>
-              <div class="review-body">
-                <h4>Best local blueberries I've had</h4>
-                <p>Proper local taste — you can tell these aren't shipped from miles away. My kids demolished them in a day. Buying the 3lb pack again next week!</p>
-              </div>
-              <div class="review-user">
-                <img src="../../assets/images/about.png" alt="Priya K." />
-                <div>
-                  <strong>Priya K.</strong>
-                  <span>3 May 2025</span>
-                </div>
-              </div>
-            </article>
+            <?php endforeach; ?>
           </div>
+          <?php endif; ?>
         </section>
       </div>
 
+      <!-- ── Sidebar ── -->
       <aside class="sidebar" aria-label="Sidebar">
+
         <section class="card">
           <h3>Shop By Category</h3>
-          <a class="cat-item" href="#"><img src="../../assets/images/buffalomeat.png" alt="Butcher" /> Butcher</a>
-          <a class="cat-item" href="#"><img src="../../assets/images/greengrocers.png" alt="Green Grocer" /> Green Grocer</a>
-          <a class="cat-item" href="#"><img src="../../assets/images/bakerys.png" alt="Bakery" /> Bakery</a>
-          <a class="cat-item" href="#"><img src="../../assets/images/fishmongers.png" alt="Fish Monger" /> Fish Monger</a>
-          <a class="cat-item" href="#"><img src="../../assets/images/nutritions.png" alt="Delicatessen" /> Delicatessen</a>
+          <?php foreach ($cat_links as $slug => $url): ?>
+          <a class="cat-item" href="<?php echo $url; ?>">
+            <img src="/cleckbasket/assets/images/<?php echo $cat_images[$slug]; ?>"
+                 alt="<?php echo ucfirst($slug); ?>"
+                 onerror="this.style.display='none'">
+            <?php echo ucfirst($slug); ?>
+          </a>
+          <?php endforeach; ?>
         </section>
 
         <section class="card">
-          <h3>New Products</h3>
-          <a class="mini-product" href="#">
-            <img src="../../assets/images/passionfruit.png" alt="Fruit Cupcakes" />
-            <div class="mini-prod-info">
-              <span class="prod-title">Fruit Cupcakes</span>
-              <span class="prod-price">&#163;3.50</span>
-            </div>
-          </a>
-          <a class="mini-product" href="#">
-            <img src="../../assets/images/beefs.png" alt="NY Strip Steak" />
-            <div class="mini-prod-info">
-              <span class="prod-title">NY Strip Steak</span>
-              <span class="prod-price">&#163;11.75</span>
-            </div>
-          </a>
+          <h3>More from <?php echo htmlspecialchars($product['category']); ?></h3>
+          <?php if (empty($related)): ?>
+            <p style="color:#aaa;font-size:14px;">No other products in this category yet.</p>
+          <?php else: ?>
+            <?php foreach ($related as $rel): ?>
+            <a class="mini-product"
+               href="/cleckbasket/includes/pages/product_detail.php?id=<?php echo $rel['id']; ?>">
+              <img src="/cleckbasket/assets/images/<?php echo htmlspecialchars($rel['image']); ?>"
+                   alt="<?php echo htmlspecialchars($rel['name']); ?>"
+                   onerror="this.onerror=null;this.style.opacity='.3'">
+              <div class="mini-prod-info">
+                <span class="prod-title"><?php echo htmlspecialchars($rel['name']); ?></span>
+                <span class="prod-price">&#163;<?php echo number_format($rel['price'], 2); ?></span>
+              </div>
+            </a>
+            <?php endforeach; ?>
+          <?php endif; ?>
         </section>
+
       </aside>
+
     </section>
   </div>
 
+  <?php include __DIR__ . '/../footer.php'; ?>
+
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const sizeWrap = document.getElementById('size-options');
-      const cartBtn = document.getElementById('add-cart-btn');
+    /* ── Product data from PHP ── */
+    const PRODUCT = <?php echo json_encode([
+        'id'    => $product['id'],
+        'name'  => $product['name'],
+        'price' => $product['price'],
+        'image' => '/cleckbasket/assets/images/' . $product['image'],
+    ]); ?>;
 
-      if (sizeWrap) {
-        sizeWrap.addEventListener('click', (event) => {
-          const btn = event.target.closest('button[data-size]');
-          if (!btn) {
-            return;
-          }
-          sizeWrap.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
-          btn.classList.add('active');
-        });
-      }
+    /* ── Quantity ── */
+    const qtyDisplay = document.getElementById('qty-value');
+    let qty = 1;
 
-      if (cartBtn) {
-        cartBtn.addEventListener('click', () => {
-          const product = getDetailProduct();
-          if (!product) {
-            return;
-          }
-
-          const cart = getCartItems();
-          const existing = cart.find((item) => item.name === product.name);
-          if (existing) {
-            existing.quantity += 1;
-          } else {
-            cart.push({
-              ...product,
-              quantity: 1
-            });
-          }
-
-          saveCartItems(cart);
-          cartBtn.textContent = 'Added';
-          setTimeout(() => {
-            cartBtn.textContent = 'Add To Cart';
-          }, 1300);
-        });
-      }
+    document.getElementById('qty-plus').addEventListener('click', () => {
+      qty = Math.min(qty + 1, <?php echo max(1, $product['stock']); ?>);
+      qtyDisplay.value = qty;
     });
 
-    function getCartItems() {
-      const cart = localStorage.getItem('cart');
-      return cart ? JSON.parse(cart) : [];
-    }
+    document.getElementById('qty-minus').addEventListener('click', () => {
+      qty = Math.max(qty - 1, 1);
+      qtyDisplay.value = qty;
+    });
 
-    function saveCartItems(cart) {
+    /* ── Add to Cart ── */
+    document.getElementById('add-cart-btn').addEventListener('click', () => {
+      const cart     = JSON.parse(localStorage.getItem('cart') || '[]');
+      const existing = cart.find(i => i.id === PRODUCT.id);
+      if (existing) {
+        existing.quantity += qty;
+      } else {
+        cart.push({ ...PRODUCT, quantity: qty });
+      }
       localStorage.setItem('cart', JSON.stringify(cart));
-    }
 
-    function getDetailProduct() {
-      const nameEl = document.querySelector('.details h1');
-      const priceEl = document.querySelector('.details .price');
-      const imgEl = document.querySelector('.product-image');
+      const btn = document.getElementById('add-cart-btn');
+      btn.textContent = 'Added ✓';
+      setTimeout(() => btn.textContent = 'Add To Cart', 1400);
+    });
 
-      if (!nameEl || !priceEl || !imgEl) {
-        return null;
+    /* ── Wishlist ── */
+    document.getElementById('wishlist-btn').addEventListener('click', () => {
+      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+      const idx      = wishlist.findIndex(i => i.id === PRODUCT.id);
+      const btn      = document.getElementById('wishlist-btn');
+
+      if (idx >= 0) {
+        wishlist.splice(idx, 1);
+        btn.textContent = 'Add To Wishlist';
+      } else {
+        wishlist.push(PRODUCT);
+        btn.textContent = 'Saved ✓';
       }
+      localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    });
 
-      return {
-        name: nameEl.textContent.trim(),
-        price: parsePrice(priceEl.textContent),
-        image: imgEl.src,
-      };
-    }
-
-    function parsePrice(text) {
-      if (!text) {
-        return 0;
+    /* ── Init wishlist button state ── */
+    (function () {
+      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+      if (wishlist.some(i => i.id === PRODUCT.id)) {
+        document.getElementById('wishlist-btn').textContent = 'Saved ✓';
       }
-      const value = parseFloat(text.replace(/[^0-9.]/g, ''));
-      return Number.isFinite(value) ? value : 0;
-    }
+    })();
   </script>
 
-  <?php include __DIR__ . '/../footer.php'; ?>
   <script src="/cleckbasket/assets/js/main.js" defer></script>
 </body>
-
 </html>

@@ -150,7 +150,8 @@ function extractProductFromCard(card) {
   }
 
   return {
-    name: nameEl.textContent.trim(),
+    id:    card.dataset.productId ? parseInt(card.dataset.productId, 10) : null,
+    name:  nameEl.textContent.trim(),
     price: parsePrice(priceEl.textContent),
     image: imgEl.src,
   };
@@ -166,7 +167,8 @@ function extractProductFromFruit(card) {
   }
 
   return {
-    name: nameEl.textContent.trim(),
+    id:    card.dataset.productId ? parseInt(card.dataset.productId, 10) : null,
+    name:  nameEl.textContent.trim(),
     price: parsePrice(priceEl.textContent),
     image: imgEl.src,
   };
@@ -179,9 +181,20 @@ function getWishlist() {
 
 function saveWishlist(wishlist) {
   localStorage.setItem(STORAGE_KEYS.wishlist, JSON.stringify(wishlist));
+  updateWishlistBadge();
+}
+
+function updateWishlistBadge() {
+  const count = getWishlist().length;
+  const badge = document.getElementById("favCount");
+  if (badge) {
+    badge.textContent = count;
+    badge.style.display = count > 0 ? "flex" : "none";
+  }
 }
 
 function initWishlistState() {
+  updateWishlistBadge();
   const wishlist = getWishlist();
   document.querySelectorAll(".wishlist, .btn-fav, .btn-wish").forEach((btn) => {
     const product = resolveProductForButton(btn);
@@ -255,16 +268,10 @@ function attachProductDetailListeners() {
         return;
       }
 
-      sessionStorage.setItem(
-        "selected_product",
-        JSON.stringify({
-          name: product.name,
-          price: product.price,
-          image: product.image,
-        }),
-      );
-
-      window.location.href = "/cleckbasket/includes/pages/product_detail.php";
+      const productId = card.dataset.productId;
+      if (productId) {
+        window.location.href = `/cleckbasket/includes/pages/product_detail.php?id=${productId}`;
+      }
     });
   });
 }

@@ -32,7 +32,7 @@
             width: 100%;
             height: 45vh;
             background-color: #d5eed7; /* light green from pic */
-            clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
+        clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
             z-index: -1;
         }
 
@@ -167,13 +167,14 @@
 
         <button class="verify-btn" id="verifyBtn">Verify</button>
 
-        <p class="resend-text">Didn't receive OTP? <a href="#" class="resend-link">Resend OTP</a></p>
+        <p class="resend-text">Didn't receive OTP? <a href="#" class="resend-link" id="resendLink">Resend OTP</a></p>
     </div>
 
     <script>
         const inputs = document.querySelectorAll('.otp-input');
         const verifyBtn = document.getElementById('verifyBtn');
         const errorMsg = document.getElementById('errorMsg');
+        const resendLink = document.getElementById('resendLink');
 
         // Handle OTP input navigation
         inputs.forEach((input, index) => {
@@ -192,42 +193,82 @@
         });
 
         // Verification logic
+        resendLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = localStorage.getItem('user_email') || '';
+            if (!email) {
+                errorMsg.textContent = 'Cannot resend: email not found. Please register again.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+            resendLink.textContent = 'Sending…';
+            resendLink.style.pointerEvents = 'none';
+            fetch('/cleckbasket/backend/resend_otp.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            })
+            .then(r => r.json())
+            .then(data => {
+                errorMsg.style.color = data.success ? '#2e7d32' : '#d32f2f';
+                errorMsg.textContent = data.message;
+                errorMsg.style.display = 'block';
+                // Re-enable after 30 s cooldown
+                setTimeout(() => {
+                    resendLink.textContent = 'Resend OTP';
+                    resendLink.style.pointerEvents = '';
+                    errorMsg.style.color = '#d32f2f';
+                }, 30000);
+            })
+            .catch(() => {
+                resendLink.textContent = 'Resend OTP';
+                resendLink.style.pointerEvents = '';
+            });
+        });
+
         verifyBtn.addEventListener('click', () => {
             let otp = '';
             inputs.forEach(input => {
                 otp += input.value;
             });
 
-            // The user requested '1234' for now.
-            // Since there are 6 boxes, we check if the code begins with 1234.
-            // (You can also type '1234' in the first 4 boxes and click verify)
-            if (otp === '1234' || otp.startsWith('1234')) {
-                errorMsg.style.display = 'none';
-                alert('Account verified successfully!');
-
-                // Set login status and redirect based on where the user came from
-                localStorage.setItem('is_login', 'true');
-
-                const referrer = document.referrer || '';
-                if (referrer.includes('/cleckbasket/includes/pages/customer_register.php')) {
-                    window.location.href = '/cleckbasket/includes/pages/homepage.php';
-                } else if (referrer.includes('/cleckbasket/includes/pages/trader_register.php')) {
-                    window.location.href = '/cleckbasket/includes/pages/trader/traderdashboard.php';
-                } else {
-                    window.location.href = '/cleckbasket/includes/pages/homepage.php';
-                }
-            } else {
+            if (otp.length < 6) {
+                errorMsg.textContent = 'Please enter the full 6-character code.';
                 errorMsg.style.display = 'block';
-                // Shake effect on error
-                const container = document.getElementById('otpContainer');
-                container.animate([
-                    { transform: 'translateX(-5px)' },
-                    { transform: 'translateX(5px)' },
-                    { transform: 'translateX(-5px)' },
-                    { transform: 'translateX(5px)' },
-                    { transform: 'translateX(0)' }
-                ], { duration: 300 });
+                return;
             }
+
+            const email = localStorage.getItem('user_email') || '';
+
+            fetch('/cleckbasket/backend/verify_otp.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, otp: otp })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    errorMsg.style.display = 'none';
+                    alert('Account verified successfully!');
+                    localStorage.setItem('is_login', 'true');
+                    window.location.href = data.redirect || '/cleckbasket/includes/pages/homepage.php';
+                } else {
+                    errorMsg.textContent = data.message || 'Invalid OTP. Please try again.';
+                    errorMsg.style.display = 'block';
+                    const container = document.getElementById('otpContainer');
+                    container.animate([
+                        { transform: 'translateX(-5px)' },
+                        { transform: 'translateX(5px)' },
+                        { transform: 'translateX(-5px)' },
+                        { transform: 'translateX(5px)' },
+                        { transform: 'translateX(0)' }
+                    ], { duration: 300 });
+                }
+            })
+            .catch(() => {
+                errorMsg.textContent = 'Verification failed. Please try again.';
+                errorMsg.style.display = 'block';
+            });
         });
     </script>
 </body>

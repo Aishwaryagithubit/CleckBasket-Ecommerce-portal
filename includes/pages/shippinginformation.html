@@ -3,35 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shipping Information — CleckBasket</title>
+    <title>Pick Up Information — CleckBasket</title>
     <link rel="stylesheet" href="/cleckbasket/assets/css/style.css">
     <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: var(--font-sans); }
-      .page-wrapper { padding: 2rem 1.5rem; max-width: 760px; margin: 0 auto; }
-      .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
-      .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 99px; margin-bottom: 12px; }
-      .badge-green { background: var(--color-background-success); color: var(--color-text-success); }
-      .page-title { font-size: 24px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 8px; }
-      .page-meta { font-size: 13px; color: var(--color-text-tertiary); }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body { font-family: 'Segoe UI', Arial, sans-serif; background: #FFF8F5; color: #29170C; }
+
+      .page-wrapper { max-width: 780px; margin: 2rem auto 4rem; padding: 0 1.25rem; }
+
+      /* ── Hero header — deep green for delivery/nature theme ── */
+      .page-header {
+        background: linear-gradient(135deg, #1a4220 0%, #2d6b31 55%, #3a8040 100%);
+        padding: 2.75rem 2.5rem 2.25rem;
+        border-radius: 20px;
+        margin-bottom: 2.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(26,66,32,0.25);
+      }
+      .page-header::before {
+        content: '';
+        position: absolute; top: -50px; right: -50px;
+        width: 220px; height: 220px; border-radius: 50%;
+        background: rgba(255,255,255,0.07);
+      }
+      .page-header::after {
+        content: '';
+        position: absolute; bottom: -35px; left: 30px;
+        width: 140px; height: 140px; border-radius: 50%;
+        background: rgba(87,43,18,0.12);
+      }
+
+      .badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+        padding: 5px 13px; border-radius: 99px; margin-bottom: 14px;
+        position: relative; z-index: 1;
+      }
+      .badge-green {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.3);
+      }
+
+      .page-title {
+        font-size: 30px; font-weight: 700; color: #fff;
+        margin-bottom: 8px; position: relative; z-index: 1;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      }
+      .page-meta {
+        font-size: 13px; color: rgba(255,255,255,0.72);
+        position: relative; z-index: 1;
+      }
+
+      /* ── Sections ── */
       .section { margin-bottom: 2rem; }
-      .section-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-      .section-title i { font-size: 16px; color: var(--color-text-secondary); }
-      .section-body { font-size: 14px; color: var(--color-text-secondary); line-height: 1.75; }
-      .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 1rem 0; }
-      .info-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; }
-      .info-card .label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-      .info-card .value { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
-      .divider { height: 0.5px; background: var(--color-border-tertiary); margin: 1.5rem 0; }
-      .highlight-box { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 1rem 1.25rem; margin: 1rem 0; }
-      .highlight-box p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.7; }
-      .contact-box { display: flex; align-items: center; gap: 12px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
-      .contact-box i { font-size: 20px; color: var(--color-text-secondary); }
-      .contact-box .ct { font-size: 13px; color: var(--color-text-secondary); }
-      .contact-box .ct a { color: var(--color-text-info); text-decoration: none; }
-      .step { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
-      .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--color-text-primary); flex-shrink: 0; }
-      .step p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.65; padding-top: 2px; }
+
+      .section-title {
+        font-size: 15.5px; font-weight: 700; color: #29170C;
+        margin-bottom: 12px;
+        display: flex; align-items: center; gap: 10px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #D5E8CD;
+      }
+      .section-title i { font-size: 17px; color: #4A7C4E; }
+
+      .section-body { font-size: 14px; color: #51443E; line-height: 1.8; }
+
+      /* ── Highlight box ── */
+      .highlight-box {
+        background: #fff;
+        border: 1px solid #E8D5C4;
+        border-left: 4px solid #4A7C4E;
+        border-radius: 10px;
+        padding: 1.1rem 1.4rem;
+        margin: 1rem 0;
+        box-shadow: 0 2px 10px rgba(41,23,12,0.05);
+      }
+      .highlight-box p { font-size: 14px; color: #51443E; line-height: 1.75; }
+
+      /* ── Info grid ── */
+      .info-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 14px; margin: 1rem 0;
+      }
+      .info-card {
+        background: #fff;
+        border: 1px solid #E8D5C4;
+        border-radius: 12px;
+        padding: 1.1rem 1rem;
+        box-shadow: 0 2px 8px rgba(41,23,12,0.05);
+        transition: box-shadow 0.2s, transform 0.2s;
+      }
+      .info-card:hover { box-shadow: 0 5px 18px rgba(41,23,12,0.1); transform: translateY(-2px); }
+      .info-card .label {
+        font-size: 11px; font-weight: 600; color: #4A7C4E;
+        text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
+      }
+      .info-card .value { font-size: 14px; font-weight: 600; color: #29170C; }
+
+      /* ── Divider ── */
+      .divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, #D5C0AE, transparent);
+        margin: 1.75rem 0;
+      }
+
+      /* ── Steps ── */
+      .step {
+        display: flex; gap: 14px; margin-bottom: 12px; align-items: flex-start;
+        padding: 12px 14px;
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #E8D5C4;
+        transition: box-shadow 0.2s;
+      }
+      .step:hover { box-shadow: 0 3px 12px rgba(41,23,12,0.07); }
+      .step-num {
+        width: 28px; height: 28px; border-radius: 50%;
+        background: #4A7C4E;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(74,124,78,0.35);
+      }
+      .step p { font-size: 14px; color: #51443E; line-height: 1.65; padding-top: 4px; }
+
+      /* ── Contact box ── */
+      .contact-box {
+        display: flex; align-items: center; gap: 16px;
+        background: linear-gradient(135deg, #572B12 0%, #401E09 100%);
+        border-radius: 14px;
+        padding: 1.3rem 1.5rem;
+        box-shadow: 0 6px 24px rgba(87,43,18,0.22);
+      }
+      .contact-box i { font-size: 24px; color: #D5E8CD; flex-shrink: 0; }
+      .contact-box .ct { font-size: 13.5px; color: rgba(255,255,255,0.82); line-height: 1.6; }
+      .contact-box .ct a { color: #D5E8CD; text-decoration: none; font-weight: 600; }
+      .contact-box .ct a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -39,49 +148,63 @@
     
     <main class="page-wrapper">
       <div class="page-header">
-        <span class="badge badge-green"><i class="ti ti-truck" aria-hidden="true"></i>Delivery</span>
-        <div class="page-title">Shipping Information</div>
-        <div class="page-meta">We ship to 40+ countries &nbsp;·&nbsp; Orders processed Mon–Fri</div>
+        <span class="badge badge-green"><i class="ti ti-basket" aria-hidden="true"></i>Collection Service</span>
+        <div class="page-title">Pick Up Information</div>
+        <div class="page-meta">Wednesday, Thursday &amp; Friday &nbsp;·&nbsp; Orders placed at least 24 hours in advance</div>
       </div>
 
       <div class="section">
-        <div class="section-title"><i class="ti ti-clock" aria-hidden="true"></i>Processing time</div>
-        <div class="section-body">All orders are processed within 1–2 business days after payment confirmation. Orders placed after 2 PM PST or on weekends/holidays will begin processing the next business day.</div>
+        <div class="section-title"><i class="ti ti-info-circle" aria-hidden="true"></i>How it works</div>
+        <div class="section-body">CleckBasket operates a collection-only service, connecting you directly with your favourite local traders. Customers must register before placing orders and select a collection time slot on Wednesday, Thursday, or Friday. All orders must be placed a minimum of 24 hours before the chosen slot, giving traders the time they need to prepare your fresh, local produce.</div>
       </div>
 
-      <div class="section">
-        <div class="section-title"><i class="ti ti-world" aria-hidden="true"></i>Domestic shipping (United States)</div>
-        <div class="info-grid">
-          <div class="info-card"><div class="label">Standard</div><div class="value">5–7 business days</div></div>
-          <div class="info-card"><div class="label">Expedited</div><div class="value">2–3 business days</div></div>
-          <div class="info-card"><div class="label">Overnight</div><div class="value">Next business day</div></div>
-          <div class="info-card"><div class="label">Free shipping</div><div class="value">Orders over $75</div></div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title"><i class="ti ti-plane" aria-hidden="true"></i>International shipping</div>
-        <div class="info-grid">
-          <div class="info-card"><div class="label">Canada &amp; Mexico</div><div class="value">7–12 business days</div></div>
-          <div class="info-card"><div class="label">Europe</div><div class="value">10–16 business days</div></div>
-          <div class="info-card"><div class="label">Asia-Pacific</div><div class="value">12–20 business days</div></div>
-          <div class="info-card"><div class="label">Duties &amp; taxes</div><div class="value">Billed to recipient</div></div>
-        </div>
-        <div class="highlight-box" style="margin-top:1rem"><p>International shipments may be subject to customs inspection, which can cause delays beyond our control. Customers are responsible for all import duties, taxes, and customs fees levied by their country.</p></div>
+      <div class="highlight-box">
+        <p>This system provides greater convenience for busy customers by allowing you to place orders outside normal shop opening hours, while still supporting the local businesses and traders at the heart of your community.</p>
       </div>
 
       <div class="divider"></div>
 
       <div class="section">
-        <div class="section-title"><i class="ti ti-package" aria-hidden="true"></i>Tracking &amp; returns</div>
-        <div class="step"><div class="step-num">1</div><p>A tracking number is emailed within 24 hours of shipment. Track your order at <a href="#" style="color:var(--color-text-info)">cleckbasket.com/track</a>.</p></div>
-        <div class="step"><div class="step-num">2</div><p>If your package arrives damaged or is lost in transit, contact us within 7 days and we will reship or refund at no cost.</p></div>
-        <div class="step"><div class="step-num">3</div><p>Unwanted items may be returned within 30 days of delivery in original, unused condition for a full refund (minus return shipping).</p></div>
+        <div class="section-title"><i class="ti ti-calendar-week" aria-hidden="true"></i>Collection days &amp; time slots</div>
+        <div class="info-grid">
+          <div class="info-card"><div class="label">Wednesday</div><div class="value">10:00–13:00 &nbsp;·&nbsp; 13:00–16:00 &nbsp;·&nbsp; 16:00–19:00</div></div>
+          <div class="info-card"><div class="label">Thursday</div><div class="value">10:00–13:00 &nbsp;·&nbsp; 13:00–16:00 &nbsp;·&nbsp; 16:00–19:00</div></div>
+          <div class="info-card"><div class="label">Friday</div><div class="value">10:00–13:00 &nbsp;·&nbsp; 13:00–16:00 &nbsp;·&nbsp; 16:00–19:00</div></div>
+          <div class="info-card"><div class="label">Advance notice</div><div class="value">Minimum 24 hours before slot</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-clock" aria-hidden="true"></i>Available time slots</div>
+        <div class="info-grid">
+          <div class="info-card"><div class="label">Morning slot</div><div class="value">10:00 – 13:00</div></div>
+          <div class="info-card"><div class="label">Afternoon slot</div><div class="value">13:00 – 16:00</div></div>
+          <div class="info-card"><div class="label">Evening slot</div><div class="value">16:00 – 19:00</div></div>
+          <div class="info-card"><div class="label">Slot capacity</div><div class="value">20 orders per slot</div></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-list-check" aria-hidden="true"></i>How to place a collection order</div>
+        <div class="step"><div class="step-num">1</div><p><strong style="color:#29170C;">Register or log in</strong> — You must have a registered CleckBasket account before you can place an order. Sign up for free in minutes.</p></div>
+        <div class="step"><div class="step-num">2</div><p><strong style="color:#29170C;">Browse &amp; add to cart</strong> — Shop from your favourite local traders across our bakery, butcher, greengrocer, fishmonger, and delicatessen categories.</p></div>
+        <div class="step"><div class="step-num">3</div><p><strong style="color:#29170C;">Choose your collection slot</strong> — Select a day (Wednesday, Thursday, or Friday) and your preferred time window: 10–13, 13–16, or 16–19. Slots must be booked at least 24 hours in advance.</p></div>
+        <div class="step"><div class="step-num">4</div><p><strong style="color:#29170C;">Confirm &amp; pay</strong> — Complete your order. Traders are notified immediately and will have your order ready for collection at your chosen time.</p></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><i class="ti ti-alert-circle" aria-hidden="true"></i>Important notes</div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong style="color:#29170C;">Registration required</strong> — Only registered customers can browse trader stock and place collection orders.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong style="color:#29170C;">24-hour minimum</strong> — Slots within the next 24 hours are automatically disabled. This ensures traders have adequate preparation time.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong style="color:#29170C;">Slot availability</strong> — Each time slot is limited to 20 orders. Once a slot is full it will be marked unavailable. Book early to secure your preferred time.</span></div>
+        <div class="list-item"><i class="ti ti-point" aria-hidden="true"></i><span><strong style="color:#29170C;">Collection only</strong> — CleckBasket does not offer home delivery. All orders must be collected in person during your chosen time window.</span></div>
       </div>
 
       <div class="contact-box">
         <i class="ti ti-headset" aria-hidden="true"></i>
-        <div class="ct">Shipping questions? Reach our support team at <a href="mailto:support@cleckbasket.com">support@cleckbasket.com</a> or call <strong style="font-weight:500;color:var(--color-text-primary)">1-800-226-2678</strong>, Mon–Fri 9 AM–6 PM PST.</div>
+        <div class="ct">Questions about collection slots? Contact our support team at <a href="mailto:support@cleckbasket.com">support@cleckbasket.com</a> — we're happy to help you get the most out of shopping local.</div>
       </div>
     </main>
 
