@@ -20,6 +20,10 @@ body {
   flex-direction: column;
   gap: 32px;
 }
+.discount{
+  display: none !important;
+
+}
 
 .invoice-card {
   background: #fff;

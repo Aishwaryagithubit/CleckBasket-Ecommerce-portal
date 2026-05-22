@@ -260,6 +260,43 @@ $invoiceDate   = date('d M Y');
             </button>
         </div>
 
+        <!-- CARD VERIFICATION BANNER -->
+        <div style="max-width:720px;margin:24px auto 0;padding:0 20px;">
+            <a href="/cleckbasket/includes/pages/card_verify.php"
+               style="display:flex;align-items:center;justify-content:space-between;gap:16px;
+                      background:linear-gradient(135deg,#572B12,#401E09);
+                      border-radius:18px;padding:20px 28px;text-decoration:none;
+                      box-shadow:0 8px 28px rgba(87,43,18,.28);">
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <!-- NFC waves icon -->
+                    <div style="width:48px;height:48px;border-radius:50%;
+                                background:rgba(255,255,255,.12);
+                                display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                             stroke="rgba(255,255,255,0.9)" stroke-width="2">
+                            <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                            <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                            <circle cx="12" cy="20" r="1" fill="rgba(255,255,255,0.9)"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;
+                                    font-weight:700;color:#fff;margin-bottom:3px;">
+                            Ready to collect? Verify your card
+                        </div>
+                        <div style="font-size:13px;color:rgba(255,255,255,.65);">
+                            Scan your NFC card (VID: A3 38 A7 13) at the counter to confirm your identity
+                        </div>
+                    </div>
+                </div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                     stroke="rgba(255,255,255,0.7)" stroke-width="2.5" flex-shrink="0">
+                    <polyline points="9 18 15 12 9 6"/>
+                </svg>
+            </a>
+        </div>
+
     </div>
 
     <script>
@@ -314,13 +351,19 @@ $invoiceDate   = date('d M Y');
                 tableBody.appendChild(row);
             });
 
-            const tax      = subtotal * 0.05;
-            const discount = 0;
-            const total    = subtotal + tax - discount;
+            // FIXED: read coupon from localStorage and apply to totals
+            const couponPct  = parseInt(localStorage.getItem('coupon_percent') || '0', 10);
+            const couponCode = localStorage.getItem('coupon_code') || '';
+            const discount   = couponPct > 0 ? parseFloat((subtotal * couponPct / 100).toFixed(2)) : 0;
+            const tax        = parseFloat(((subtotal - discount) * 0.05).toFixed(2));
+            const total      = subtotal - discount + tax;
 
             subtotalEl.textContent = formatMoney(subtotal);
             taxEl.textContent      = formatMoney(tax);
-            discountEl.textContent = `-${formatMoney(discount)}`;
+            // FIXED: show real discount amount and coupon code instead of always £0.00
+            discountEl.textContent = discount > 0
+                ? `-${formatMoney(discount)} (${couponCode} ${couponPct}% off)`
+                : `-${formatMoney(0)}`;
             totalEl.textContent    = formatMoney(total);
         });
 
