@@ -367,7 +367,10 @@ document.querySelector('.btn-confirm')?.addEventListener('click', async () => {
 
     const cartItems = JSON.parse(localStorage.getItem('invoice_items') || localStorage.getItem('cart') || '[]');
     const subtotal  = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1), 0);
-    const total     = (subtotal * 1.05).toFixed(2);
+    // FIXED: apply coupon discount before tax when sending amount to PayPal
+    const couponPct = parseInt(localStorage.getItem('coupon_percent') || '0', 10);
+    const discount  = couponPct > 0 ? parseFloat((subtotal * couponPct / 100).toFixed(2)) : 0;
+    const total     = ((subtotal - discount) * 1.05).toFixed(2);
 
     // Save order to DB before redirecting to PayPal
     try {

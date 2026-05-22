@@ -112,8 +112,8 @@
                     <div class="detail-block">
                         <div class="detail-label">Connect</div>
                         <div class="detail-value">
-                            +977 (01) 4455-667<br>
-                            hello@cleckbasket.com
+                            +44 700 123456<br>
+                            cleckbasket@gmail.com
                         </div>
                     </div>
                 </div>
@@ -122,12 +122,16 @@
                 <div class="pickup-hours">
                     <div class="pickup-hours-label">Pickup Hours</div>
                     <div class="hours-row">
-                        <span class="hours-day">Mon — Fri</span>
-                        <span class="hours-time">09:00 AM – 06:00 PM</span>
+                        <span class="hours-day">Wed — Thurs — Fri</span>
+                        <span class="hours-time">10-13</span>
                     </div>
                     <div class="hours-row">
-                        <span class="hours-day">Sat — Sun</span>
-                        <span class="hours-time">10:00 AM – 04:00 PM</span>
+                        <span class="hours-day">Wed — Thurs — Fri</span>
+                        <span class="hours-time">13-16</span>
+                    </div>
+                    <div class="hours-row">
+                        <span class="hours-day">Wed — Thurs — Fri</span>
+                        <span class="hours-time">16-19</span>
                     </div>
                 </div>
 
