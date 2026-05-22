@@ -735,14 +735,25 @@ $final_price = $is_bakery ? round($product['price'] * 0.85, 2) : $product['price
     document.getElementById('add-cart-btn').addEventListener('click', () => {
       const cart     = JSON.parse(localStorage.getItem('cart') || '[]');
       const existing = cart.find(i => i.id === PRODUCT.id);
+      const btn      = document.getElementById('add-cart-btn');
       if (existing) {
         existing.quantity += qty;
       } else {
+        if (cart.length >= 20) {
+          btn.textContent = 'Cart Full (max 20)';
+          btn.style.background = '#fdecea';
+          btn.style.color = '#c62828';
+          setTimeout(() => {
+            btn.textContent = 'Add To Cart';
+            btn.style.background = '';
+            btn.style.color = '';
+          }, 1800);
+          return;
+        }
         cart.push({ ...PRODUCT, quantity: qty });
       }
       localStorage.setItem('cart', JSON.stringify(cart));
 
-      const btn = document.getElementById('add-cart-btn');
       btn.textContent = 'Added ✓';
       setTimeout(() => btn.textContent = 'Add To Cart', 1400);
     });

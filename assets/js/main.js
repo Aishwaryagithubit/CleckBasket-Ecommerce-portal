@@ -115,6 +115,8 @@ function attachCartListeners() {
   });
 }
 
+const CART_LIMIT = 20;
+
 function addToCart(product) {
   const cart = getCart();
   const existing = cart.find((item) => item.name === product.name);
@@ -122,6 +124,10 @@ function addToCart(product) {
   if (existing) {
     existing.quantity += product.quantity;
   } else {
+    if (cart.length >= CART_LIMIT) {
+      showToast(`Cart is full — max ${CART_LIMIT} different items allowed`);
+      return;
+    }
     cart.push(product);
   }
 

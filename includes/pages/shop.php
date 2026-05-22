@@ -399,6 +399,15 @@ function shop_page_url($cat, $pg) {
                     if (existing) {
                         existing.quantity += 1;
                     } else {
+                        if (cart.length >= 20) {
+                            btn.textContent = 'Cart Full (max 20)';
+                            btn.style.background = '#fdecea';
+                            setTimeout(function () {
+                                btn.textContent = 'Add to Cart';
+                                btn.style.background = '';
+                            }, 1800);
+                            return;
+                        }
                         cart.push(product);
                     }
                     localStorage.setItem('cart', JSON.stringify(cart));
