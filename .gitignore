@@ -1,1 +1,4 @@
 vendor/
+
+# Runtime temp files — written by PHP at scan time, not for version control
+temp/card_scan.json
