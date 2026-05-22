@@ -10,16 +10,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['cus
     $cid  = (int)$_POST['customer_id'];
     $conn = getDBConnection();
     if ($conn) {
-        $del = oci_parse($conn, "DELETE FROM users WHERE user_id = :id AND UPPER(role) = 'CUSTOMER'");
-        oci_bind_by_name($del, ':id', $cid);
-        if (oci_execute($del)) {
+
+        // FIXED: Delete child records first before deleting user
+        $delQueries = [
+            "DELETE FROM payment          WHERE user_id = :id",
+            "DELETE FROM favourite_product WHERE favourite_id IN (SELECT favourite_id FROM favourite WHERE user_id = :id)",
+            "DELETE FROM favourite        WHERE user_id = :id",
+            "DELETE FROM review           WHERE user_id = :id",
+            "DELETE FROM order_product    WHERE order_id IN (SELECT order_id FROM orders WHERE user_id = :id)",
+            "DELETE FROM orders           WHERE user_id = :id",
+            "DELETE FROM cart_product     WHERE cart_id IN (SELECT cart_id FROM cart WHERE user_id = :id)",
+            "DELETE FROM cart             WHERE user_id = :id",
+            "DELETE FROM report           WHERE user_id = :id",
+            "DELETE FROM users            WHERE user_id = :id AND UPPER(role) = 'CUSTOMER'",
+        ];
+
+        $failed = false;
+        foreach ($delQueries as $q) {
+            $s = oci_parse($conn, $q);
+            oci_bind_by_name($s, ':id', $cid);
+            if (!oci_execute($s)) {
+                $err   = oci_error($s);
+                $error = 'Delete failed: ' . $err['message'];
+                $failed = true;
+                oci_free_statement($s);
+                break;
+            }
+            oci_free_statement($s);
+        }
+        if (!$failed) {
             oci_commit($conn);
             $message = 'Customer deleted successfully.';
-        } else {
-            $err   = oci_error($del);
-            $error = 'Delete failed: ' . $err['message'];
         }
-        oci_free_statement($del);
         oci_close($conn);
     }
 }
