@@ -173,6 +173,11 @@ function shop_page_url($cat, $pg) {
         .new-prod-item {
             text-decoration: none;
         }
+        
+        /* Fix: ensure page is tall enough to push footer down */
+        .category-page-wrapper {
+        min-height: calc(100vh - 200px);
+        }
 
         /* Hero slider */
         .hero-img-wrap {

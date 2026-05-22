@@ -36,7 +36,7 @@ if ($conn) {
             'price'    => (float)$row['PRICE'],
             'image'    => '/cleckbasket/assets/images/' . $row['PRODUCT_IMAGE'],
             'desc'     => $row['DESCRIPTION'],
-            'discount' => (int)$row['DISCOUNT_PCT'],
+            'discount' => 15, // ← fixed 15% off all bakery items
         ];
     }
     oci_free_statement($stmt);
