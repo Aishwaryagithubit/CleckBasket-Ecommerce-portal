@@ -10,16 +10,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['pro
     $pid  = (int)$_POST['product_id'];
     $conn = getDBConnection();
     if ($conn) {
-        $del = oci_parse($conn, "DELETE FROM product WHERE product_id = :pid");
-        oci_bind_by_name($del, ':pid', $pid);
-        if (oci_execute($del)) {
+
+        // FIXED: Delete child records first before deleting product
+        $delQueries = [
+            "DELETE FROM product_report    WHERE product_id = :pid",
+            "DELETE FROM discount          WHERE product_id = :pid",
+            "DELETE FROM favourite_product WHERE product_id = :pid",
+            "DELETE FROM cart_product      WHERE product_id = :pid",
+            "DELETE FROM order_product     WHERE product_id = :pid",
+            "DELETE FROM review            WHERE product_id = :pid",
+            "DELETE FROM product           WHERE product_id = :pid",
+        ];
+
+        $failed = false;
+        foreach ($delQueries as $q) {
+            $s = oci_parse($conn, $q);
+            oci_bind_by_name($s, ':pid', $pid);
+            if (!oci_execute($s)) {
+                $err   = oci_error($s);
+                $error = 'Delete failed: ' . $err['message'];
+                $failed = true;
+                oci_free_statement($s);
+                break;
+            }
+            oci_free_statement($s);
+        }
+        if (!$failed) {
             oci_commit($conn);
             $message = 'Product deleted successfully.';
-        } else {
-            $err   = oci_error($del);
-            $error = 'Delete failed: ' . $err['message'];
         }
-        oci_free_statement($del);
         oci_close($conn);
     }
 }
