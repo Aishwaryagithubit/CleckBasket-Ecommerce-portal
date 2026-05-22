@@ -225,7 +225,7 @@ $show_fruit_slider = count($fruits_data) > 5;
 
             <div class="fruits-slider<?php echo $show_fruit_slider ? ' has-controls' : ''; ?>">
                 <button class="fruit-nav fruit-prev<?php echo $show_fruit_slider ? ' is-visible' : ''; ?>" type="button" aria-label="Scroll fruits left">
-                    <i class="fa-solid fa-chevron-left"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                 </button>
                 <div class="fruits-list" data-fruits-list>
                 <?php if (empty($fruits_data)): ?>
@@ -238,7 +238,7 @@ $show_fruit_slider = count($fruits_data) > 5;
                                  alt="<?php echo htmlspecialchars($fruit['name']); ?>"
                                  onerror="this.onerror=null;this.style.opacity='0'">
                             <div class="fruit-add-btn circle-btn">
-                                <i class="fa-solid fa-plus"></i>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             </div>
                         </div>
                         <div class="fruit-info">
@@ -254,7 +254,7 @@ $show_fruit_slider = count($fruits_data) > 5;
                 <?php endif; ?>
                 </div>
                 <button class="fruit-nav fruit-next<?php echo $show_fruit_slider ? ' is-visible' : ''; ?>" type="button" aria-label="Scroll fruits right">
-                    <i class="fa-solid fa-chevron-right"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </button>
             </div>
         </div>
@@ -334,9 +334,10 @@ $show_fruit_slider = count($fruits_data) > 5;
             </div>
         </div>
     </section>
+
     <button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-    <i class="fa-solid fa-arrow-up"></i>
-</button>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+    </button>
 
     <!-- ===== FOOTER ===== -->
     <?php include '../footer.php'; ?>
