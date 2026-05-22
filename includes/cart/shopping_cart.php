@@ -244,6 +244,17 @@ if (!empty($_SESSION['full_name'])) {
       background: var(--brown-hover);
     }
 
+    /* ADDED: coupon feedback message */
+    .coupon-msg {
+      font-size: 0.82rem;
+      margin-top: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: none;
+    }
+    .coupon-msg.success { background: #e8f5e9; color: #2e7d32; display: block; }
+    .coupon-msg.error   { background: #fdecea; color: #c62828; display: block; }
+
     .paypal-box {
       margin-top: 10px;
       background: var(--white);
@@ -366,7 +377,6 @@ if (!empty($_SESSION['full_name'])) {
 
     .pickup-pill.active {
       background: #10c910;
-      /* Green matching the pic */
       color: var(--white);
       border-color: #10c910;
     }
@@ -391,6 +401,10 @@ if (!empty($_SESSION['full_name'])) {
       color: var(--text-dark);
       font-weight: 600;
     }
+
+    /* ADDED: discount row style */
+    .summary-row.discount-row { display: none; }
+    .summary-row.discount-row span.val { color: #2e7d32; }
 
     .summary-divider {
       border: none;
@@ -542,13 +556,21 @@ if (!empty($_SESSION['full_name'])) {
           </div>
         </div>
 
-        <!-- Coupon -->
+        <!-- Coupon — FIXED: added input and button that were missing from original HTML -->
         <div class="cart-forms">
           <div class="coupon-wrap">
-            <input type="text" class="coupon-input" id="coupon-input" placeholder="Have A Coupon Code?">
-            <button class="btn-apply-coupon" id="coupon-btn">Apply Coupon</button>
+            <input class="coupon-input" id="coupon-input" type="text" placeholder="Enter coupon code…" />
+            <button class="btn-apply-coupon" id="coupon-btn">Apply</button>
           </div>
         </div>
+        <!-- ADDED: coupon feedback message -->
+        <div id="coupon-msg" class="coupon-msg"></div>
+        <!-- ADDED: applied coupon bar with Remove button -->
+        <div id="coupon-applied-bar" style="display:none;margin-top:6px;font-size:0.85rem;color:#2e7d32;padding:6px 12px;background:#e8f5e9;border-radius:6px;">
+          Coupon applied: <strong id="coupon-applied-label"></strong>
+          <button onclick="removeCoupon()" style="margin-left:10px;background:none;border:none;color:#c62828;cursor:pointer;font-size:0.85rem;text-decoration:underline;font-family:inherit;">Remove</button>
+        </div>
+
           <div class="right-section cart-total-card">
           <h3>Cart Total</h3>
           <br>
@@ -559,6 +581,11 @@ if (!empty($_SESSION['full_name'])) {
           <div class="summary-row">
             <span>Shipping :</span>
             <span class="val" id="summary-delivery">$0.00</span>
+          </div>
+          <!-- ADDED: discount row, hidden until coupon applied -->
+          <div class="summary-row discount-row" id="discount-row">
+            <span>Coupon Discount :</span>
+            <span class="val" id="summary-discount">-£0.00</span>
           </div>
           <div class="summary-divider"></div>
           <div class="summary-row">
@@ -609,16 +636,24 @@ if (!empty($_SESSION['full_name'])) {
           </button>
         </div>
 
-        
-
-      
-
       </div>
 
     </div>
   </main>
 
   <script>
+    // ADDED: all valid coupons matching your DB coupon table
+    const VALID_COUPONS = {
+      'WELCOME10': 10,
+      'MEAT15':    15,
+      'FRESH5':     5,
+      'SEAFOOD12': 12,
+      'BAKERY8':    8,
+      'DAIRY6':     6,
+      'GOURMET20': 20,
+      'WEEKEND5':   5,
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
       const list = document.getElementById('cart-items-list');
       if (!list) {
@@ -636,7 +671,8 @@ if (!empty($_SESSION['full_name'])) {
           const cartItems = getCartItems();
           localStorage.setItem('invoice_items', JSON.stringify(cartItems));
           saveCartItems([]);
-          localStorage.removeItem('coupon_code');
+          // FIXED: removed localStorage.removeItem('coupon_code') so coupon
+          // survives through to payment.php and invoice.php
 
           setTimeout(() => {
             window.location.href = '/cleckbasket/includes/pages/collection.php';
@@ -682,6 +718,26 @@ if (!empty($_SESSION['full_name'])) {
           event.preventDefault();
           applyCoupon();
         });
+      }
+
+      // ADDED: allow Enter key in coupon input
+      const couponInput = document.getElementById('coupon-input');
+      if (couponInput) {
+        couponInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); }
+        });
+        // ADDED: pre-fill if coupon already saved + show applied bar
+        const saved = localStorage.getItem('coupon_code') || '';
+        if (saved) {
+          couponInput.value = saved;
+          const pct = localStorage.getItem('coupon_percent') || '0';
+          const bar = document.getElementById('coupon-applied-bar');
+          const lbl = document.getElementById('coupon-applied-label');
+          if (bar && lbl) {
+            lbl.textContent  = saved + ' (' + pct + '% off)';
+            bar.style.display = 'block';
+          }
+        }
       }
 
       renderCart();
@@ -741,6 +797,7 @@ if (!empty($_SESSION['full_name'])) {
 
     function updateSummary(subtotal) {
       const delivery = subtotal > 0 ? 0 : 0;
+      // FIXED: use coupon_percent from localStorage instead of hardcoded SAVE10
       const discount = getCouponDiscount(subtotal);
       const total = Math.max(0, subtotal + delivery - discount);
 
@@ -757,38 +814,79 @@ if (!empty($_SESSION['full_name'])) {
       if (totalEl) {
         totalEl.textContent = formatPriceTotal(total);
       }
+
+      // ADDED: show/hide discount row
+      const discountRow = document.getElementById('discount-row');
+      const discountEl  = document.getElementById('summary-discount');
+      if (discount > 0 && discountRow && discountEl) {
+        discountRow.style.display = 'flex';
+        discountEl.textContent    = `-£${discount.toFixed(2)}`;
+      } else if (discountRow) {
+        discountRow.style.display = 'none';
+      }
     }
 
     function getCouponDiscount(subtotal) {
-      const saved = localStorage.getItem('coupon_code') || '';
-      if (!saved) {
-        return 0;
-      }
-
-      if (saved.toUpperCase() === 'SAVE10') {
-        return Math.min(10, subtotal);
-      }
-
-      return 0;
+      // FIXED: use coupon_percent saved in localStorage (set by applyCoupon)
+      const pct = parseInt(localStorage.getItem('coupon_percent') || '0', 10);
+      if (!pct) return 0;
+      return parseFloat((subtotal * pct / 100).toFixed(2));
     }
 
     function applyCoupon() {
       const input = document.getElementById('coupon-input');
+      const msgEl = document.getElementById('coupon-msg');
       if (!input) {
         return;
       }
 
       const code = input.value.trim().toUpperCase();
+      msgEl.className   = 'coupon-msg';
+      msgEl.textContent = '';
+
       if (!code) {
+        msgEl.className   = 'coupon-msg error';
+        msgEl.textContent = 'Please enter a coupon code.';
         return;
       }
 
-      if (code === 'SAVE10') {
-        localStorage.setItem('coupon_code', code);
+      // FIXED: validate against all DB coupons, save percent for downstream use
+      if (VALID_COUPONS[code] !== undefined) {
+        const pct = VALID_COUPONS[code];
+        localStorage.setItem('coupon_code',    code);
+        localStorage.setItem('coupon_percent', pct);
+        msgEl.className   = 'coupon-msg success';
+        msgEl.textContent = `Coupon "${code}" applied — ${pct}% off!`;
+        // ADDED: show applied bar
+        const bar = document.getElementById('coupon-applied-bar');
+        const lbl = document.getElementById('coupon-applied-label');
+        if (bar && lbl) {
+          lbl.textContent   = code + ' (' + pct + '% off)';
+          bar.style.display = 'block';
+        }
       } else {
         localStorage.removeItem('coupon_code');
+        localStorage.removeItem('coupon_percent');
+        msgEl.className   = 'coupon-msg error';
+        msgEl.textContent = `Coupon "${code}" is not valid.`;
+        // ADDED: hide applied bar on invalid code
+        const bar = document.getElementById('coupon-applied-bar');
+        if (bar) bar.style.display = 'none';
       }
 
+      renderCart();
+    }
+
+    // ADDED: remove coupon function for the Remove button
+    function removeCoupon() {
+      localStorage.removeItem('coupon_code');
+      localStorage.removeItem('coupon_percent');
+      const input = document.getElementById('coupon-input');
+      if (input) input.value = '';
+      const msgEl = document.getElementById('coupon-msg');
+      if (msgEl) { msgEl.className = 'coupon-msg'; msgEl.textContent = ''; }
+      const bar = document.getElementById('coupon-applied-bar');
+      if (bar) bar.style.display = 'none';
       renderCart();
     }
 
