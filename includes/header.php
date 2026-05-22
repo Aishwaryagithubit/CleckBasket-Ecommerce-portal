@@ -285,7 +285,7 @@ $session_user = $_SESSION['user_name'] ?? '';
 
 <!-- TOP BANNER -->
 <div class="top-banner">
-    <a href="/cleckbasket/includes/pages/shop.php?cat=bakery"  style="text-decoration: none; color: white;">Get 10% off in all Bakery items. Hurry up! don't miss this! Get free Delivery for all greengrocer products.</a>
+    <a href="/cleckbasket/includes/pages/shop.php?cat=bakery"  style="text-decoration: none; color: white;"> Sweet deals just came out of the oven 10–15% OFF bakery items!</a>
 </div>
 
 <!-- HEADER -->

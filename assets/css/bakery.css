@@ -9,10 +9,23 @@
   --card-border: rgba(0, 0, 0, 0.15);
 }
 
+/* ADDED: push footer to bottom on short pages */
+html {
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: "DM Sans", sans-serif;
   background-color: #ffffff;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.category-page-wrapper {
+  flex: 1; /* ADDED: takes up all available space, pushing footer down */
+  min-height: calc(100vh - 300px);
 }
 
 .category-hero {
@@ -527,6 +540,7 @@ body {
     flex-wrap: wrap;
   }
 }
+
 .product-card-top {
     position: relative; /* needed for badge positioning */
 }
