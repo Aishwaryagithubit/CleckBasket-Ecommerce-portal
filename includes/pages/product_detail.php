@@ -132,6 +132,10 @@ $name_safe = htmlspecialchars($product['name']);
 $desc_safe = $product['description']
     ? htmlspecialchars($product['description'])
     : 'Fresh, high-quality ' . $name_safe . ' from ' . htmlspecialchars($product['shop']) . ' — sourced locally and delivered with care.';
+
+// ── CHANGE 1: Bakery discount variables ──
+$is_bakery   = strtolower($product['category']) === 'bakery';
+$final_price = $is_bakery ? round($product['price'] * 0.85, 2) : $product['price'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -201,6 +205,22 @@ $desc_safe = $product['description']
       justify-content: center;
       background: #f9f9f9;
       border-radius: 18px;
+      position: relative; /* CHANGE 2: needed for badge positioning */
+    }
+
+    /* CHANGE 2: discount badge on image */
+    .image-discount-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: #e74c3c;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-family: 'DM Sans', sans-serif;
+      z-index: 2;
     }
 
     .product-image {
@@ -266,6 +286,30 @@ $desc_safe = $product['description']
       margin: 10px 0 4px;
       color: #000;
       letter-spacing: -0.04em;
+    }
+
+    /* CHANGE 3: styles for strikethrough + badge */
+    .price-was {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: #aaa;
+      text-decoration: line-through;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .price-save-badge {
+      display: inline-block;
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-left: 8px;
+      vertical-align: middle;
+      font-family: 'Inter', sans-serif;
     }
 
     .desc {
@@ -521,6 +565,9 @@ $desc_safe = $product['description']
         <div class="main">
 
           <div class="product-image-wrap">
+            <?php if ($is_bakery): /* CHANGE 2: badge on image */ ?>
+              <span class="image-discount-badge">15% OFF</span>
+            <?php endif; ?>
             <img class="product-image"
                  src="<?php echo $image_url; ?>"
                  alt="<?php echo $name_safe; ?>"
@@ -542,7 +589,16 @@ $desc_safe = $product['description']
             <div class="rating"><span style="color:#bbb">No reviews yet</span></div>
             <?php endif; ?>
 
-            <div class="price">&#163;<?php echo number_format($product['price'], 2); ?></div>
+            <?php /* CHANGE 3: price display — bakery shows discounted + strikethrough, others unchanged */ ?>
+            <?php if ($is_bakery): ?>
+              <div class="price">
+                &#163;<?php echo number_format($final_price, 2); ?>
+                <span class="price-was">&#163;<?php echo number_format($product['price'], 2); ?></span>
+                <span class="price-save-badge">15% OFF</span>
+              </div>
+            <?php else: ?>
+              <div class="price">&#163;<?php echo number_format($product['price'], 2); ?></div>
+            <?php endif; ?>
 
             <p class="desc"><?php echo $desc_safe; ?></p>
 
@@ -657,7 +713,7 @@ $desc_safe = $product['description']
     const PRODUCT = <?php echo json_encode([
         'id'    => $product['id'],
         'name'  => $product['name'],
-        'price' => $product['price'],
+        'price' => $final_price, /* CHANGE 4: cart uses discounted price for bakery */
         'image' => '/cleckbasket/assets/images/' . $product['image'],
     ]); ?>;
 
