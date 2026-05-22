@@ -130,6 +130,12 @@ if (session_status() === PHP_SESSION_NONE) session_start();
             color: #51443E;
         }
 
+        /* ADDED: discount row style */
+        .totals-row.discount {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
         .totals-row.grand {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 18px;
@@ -212,6 +218,11 @@ if (session_status() === PHP_SESSION_NONE) session_start();
                     <span>Subtotal</span>
                     <span id="pay-subtotal">£0.00</span>
                 </div>
+                <!-- ADDED: coupon discount row, hidden until coupon applied -->
+                <div class="totals-row discount" id="pay-discount-row" style="display:none;">
+                    <span>Coupon (<span id="pay-coupon-label"></span>)</span>
+                    <span id="pay-discount">-£0.00</span>
+                </div>
                 <div class="totals-row">
                     <span>Tax (5%)</span>
                     <span id="pay-tax">£0.00</span>
@@ -235,8 +246,11 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
     <script>
     // ── Read localStorage ───────────────────────────────────────────
-    const slotLabel = localStorage.getItem('selected_slot_label') || '—';
-    const items     = JSON.parse(localStorage.getItem('invoice_items') || '[]');
+    const slotLabel  = localStorage.getItem('selected_slot_label') || '—';
+    const items      = JSON.parse(localStorage.getItem('invoice_items') || '[]');
+    // ADDED: read coupon from localStorage
+    const couponCode = localStorage.getItem('coupon_code')    || '';
+    const couponPct  = parseInt(localStorage.getItem('coupon_percent') || '0', 10);
 
     document.getElementById('slot-display').textContent = slotLabel;
 
@@ -267,12 +281,21 @@ if (session_status() === PHP_SESSION_NONE) session_start();
         });
     }
 
-    const tax   = subtotal * 0.05;
-    const total = (subtotal + tax).toFixed(2);
+    // FIXED: apply coupon discount before calculating tax
+    const discountAmt = couponPct > 0 ? parseFloat((subtotal * couponPct / 100).toFixed(2)) : 0;
+    const tax         = parseFloat(((subtotal - discountAmt) * 0.05).toFixed(2));
+    const total       = (subtotal - discountAmt + tax).toFixed(2);
 
     document.getElementById('pay-subtotal').textContent = `£${subtotal.toFixed(2)}`;
     document.getElementById('pay-tax').textContent      = `£${tax.toFixed(2)}`;
     document.getElementById('pay-total').textContent    = `£${total}`;
+
+    // ADDED: show discount row if coupon was applied
+    if (discountAmt > 0) {
+        document.getElementById('pay-discount-row').style.display  = 'flex';
+        document.getElementById('pay-coupon-label').textContent    = couponCode + ' ' + couponPct + '% off';
+        document.getElementById('pay-discount').textContent        = `-£${discountAmt.toFixed(2)}`;
+    }
 
     function escHtml(str) {
         const d = document.createElement('div');
@@ -302,6 +325,9 @@ if (session_status() === PHP_SESSION_NONE) session_start();
             onApprove: function(data, actions) {
                 return actions.order.capture().then(function() {
                     localStorage.setItem('paypal_order_id', data.orderID);
+                    // ADDED: clear coupon after successful payment
+                    localStorage.removeItem('coupon_code');
+                    localStorage.removeItem('coupon_percent');
                     window.location.href = '/cleckbasket/includes/pages/checkout_success.php?order_id=' + encodeURIComponent(data.orderID);
                 });
             },
